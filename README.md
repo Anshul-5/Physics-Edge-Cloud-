@@ -4,9 +4,9 @@ An Uncertainty-Calibrated, Physics-Informed Edge-to-Cloud Cascade for Real-Time 
 
 ---
 
-## Overview
+## About
 
-**PhysEdge-Cloud** is a production-grade, 9-layer video anomaly detection architecture designed to balance detection latency, cloud operational cost (OPEX), and strict user privacy. By leveraging low-power physics calculations (metric kinematics) directly on microcontroller-class devices (ESP32-S3) as a wake-gate, the system escalates suspicious activities through regional probabilistic checks before engaging central cloud AI models.
+**PhysEdge-Cloud** is an enterprise-grade, 9-layer video anomaly detection framework that optimizes the trade-offs between real-time detection latency, cloud bandwidth costs, and strict privacy regulations. By leveraging lightweight physics-based algorithms (such as metric kinematics and directional motion entropy) directly on sub-watt microcontroller edge devices (ESP32-S3) as a gatekeeper, the system filters out 80–90% of normal scene activity. Suspicious events are escalated to a regional validation tier (NVIDIA Jetson) for posture and pose estimation before final contextual adjudication in the cloud using a Graph Spectral Instability model and conformal prediction.
 
 ```
 +------------------------------------------+
