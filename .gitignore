@@ -1,0 +1,5 @@
+# Ignore document files
+*.docx
+
+# Ignore local temporary/scratch scripts
+scratch/
