@@ -1,126 +1,132 @@
 # Mathematical Specifications & Formulations: PhysEdge-Cloud
 
-This document contains the comprehensive mathematical specifications, step-by-step algorithms, variable dictionaries, dimensional representations, and fixed-point scale factor definitions for all components of the PhysEdge-Cloud system.
+**Document Reference:** PEC-MATH-SPEC-V1.0  
+**Status:** Approved  
+**Domain:** Embedded Signal Processing, Bayesian Fusion, Graph Spectral Theory, Conformal Inference  
 
 ---
 
-## 1. Toplogical Hierarchy & Variable Dictionary
+## 1. Document Control & Notation Conventions
 
-### 1.1 Variable Specification Table
+This document establishes the mathematical foundation for the **PhysEdge-Cloud** anomaly detection framework. 
 
-| Symbol | Representation | Data Type | Dimensions / Shape | Scale / Range |
-| :--- | :--- | :--- | :--- | :--- |
-| $(x, y)$ | Pixel Coordinates (2D) | `int16_t` | Vector $2 \times 1$ | $x \in [0, 160]$, $y \in [0, 120]$ |
-| $(X_m, Y_m)$ | Metric Coordinates (2D) | `float32_t` | Vector $2 \times 1$ | $[-\infty, \infty]$ meters |
-| $H$ | Homography Matrix | `float32_t` | Matrix $3 \times 3$ | Defined during calibration |
-| $\mathbf{v}$ | Metric Velocity Vector | `float32_t` | Vector $2 \times 1$ | $m/s$ |
-| $\mathbf{a}$ | Metric Acceleration Vector| `float32_t` | Vector $2 \times 1$ | $m/s^2$ |
-| $\mathbf{j}$ | Metric Jerk Vector | `float32_t` | Vector $2 \times 1$ | $m/s^3$ |
-| $S_j$ | Standardized Jerk Surprise | `float32_t` | Scalar | $[0, \infty]$ (dimensionless) |
-| $\Pi_t$ | Panic Index | `float32_t` | Scalar | $[0, \infty]$ (dimensionless) |
-| $C_{pq}$ | Convergence Rate | `float32_t` | Scalar | $m/s$ |
-| $\text{TTC}_{pq}$ | Time-to-Collision Proxy | `float32_t` | Scalar | $[0, \infty]$ seconds |
-| $\ell_t$ | Recursive Log-Odds | `float32_t` | Scalar | $[-\infty, \infty]$ |
-| $\mathbf{A}$ | Adjacency Matrix | `float32_t` | Matrix $N \times N$ | $A_{pq} \in [0, 1]$ |
-| $\mathcal{L}$ | Normalized Laplacian | `float32_t` | Matrix $N \times N$ | Eigenvalues $\lambda \in [0, 2]$ |
-| $q_{1-\alpha}$ | Conformal Quantile Bound | `float32_t` | Scalar | $[0, 1]$ |
-| $S_n$ | SPRT Cumulative Likelihood | `float32_t` | Scalar | $[-\infty, \infty]$ |
+### 1.1 Typographical Conventions
+*   **Scalars:** Lowercase italic letters (e.g., $x, y, \alpha$).
+*   **Vectors:** Bold lowercase letters (e.g., $\mathbf{x}, \mathbf{v}, \mathbf{j}$), assumed to be column vectors unless transposed ($\mathbf{x}^T$).
+*   **Matrices:** Bold uppercase letters (e.g., $\mathbf{H}, \mathbf{A}, \boldsymbol{\mathcal{L}}$).
+*   **Sets:** Calligraphic uppercase letters (e.g., $\mathcal{S}, \mathcal{V}, \mathcal{E}$).
+*   **Estimates & Outputs:** Accent symbols denote estimators (e.g., $\hat{x}$ is the reconstruction of $x$).
+
+### 1.2 Mathematical Notation Glossary
+
+| Symbol | Mathematical Representation | Metric Units | Type |
+| :--- | :--- | :--- | :--- |
+| $\mathbf{X}_p(t)$ | Projective position coordinate of entity $p$ at time $t$ | Meters ($m$) | $2 \times 1$ Vector |
+| $\mathbf{H}$ | Projective planar homography operator | Dimensionless | $3 \times 3$ Matrix |
+| $\mathbf{j}(t)$ | Third-order temporal derivative of displacement (Jerk) | $m/s^3$ | $2 \times 1$ Vector |
+| $S_j(t)$ | Standardized statistical anomaly surprise value | Dimensionless | Scalar |
+| $\Pi(t)$ | Directional motion entropy rate (Panic Index) | $s^{-1}$ | Scalar |
+| $\ell_t$ | Logarithmic odds of anomaly probability | Nat / Log-Odds | Scalar |
+| $\lambda_2$ | Algebraic connectivity of graph Laplacian (Fiedler value)| Dimensionless | Scalar |
+| $q_{1-\alpha}$ | Conformal error margin quantile threshold | Probability | Scalar |
+| $S_n$ | Sequential Probability Ratio Test value | Nat / Log-Odds | Scalar |
 
 ---
 
 ## 2. Layer 1: Embedded Kinematics (ESP32-S3)
 
-### 2.1 Perspective Homography Projection
-The 2D camera coordinates $(x_i, y_i)$ are transformed to ground-plane coordinates $(X_{m}, Y_{m})$ through the perspective homography projection. The coordinate vector in projective space $\mathbf{x} = [x, y, 1]^T$ is mapped to ground-plane coordinates as:
+### 2.1 Planar Projective Homography Mapping
+The camera sensor outputs raw pixel positions $\mathbf{p} = [x, y]^T$. To map these to ground-plane metric coordinates $\mathbf{X}_m = [X_m, Y_m]^T$ (SI units), we apply a projective transformation $\pi: \mathbb{P}^2 \to \mathbb{R}^2$:
 
-$$\begin{bmatrix} X_w \\ Y_w \\ W_w \end{bmatrix} = \mathbf{H} \cdot \begin{bmatrix} x \\ y \\ 1 \end{bmatrix} = \begin{bmatrix} H_{11} & H_{12} & H_{13} \\ H_{21} & H_{22} & H_{23} \\ H_{31} & H_{32} & H_{33} \end{bmatrix} \begin{bmatrix} x \\ y \\ 1 \end{bmatrix}$$
+$$\begin{bmatrix} X_w \\ Y_w \\ W_w \end{bmatrix} = \mathbf{H} \cdot \begin{bmatrix} x \\ y \\ 1 \end{bmatrix} = \begin{bmatrix} h_{11} & h_{12} & h_{13} \\ h_{21} & h_{22} & h_{23} \\ h_{31} & h_{32} & h_{33} \end{bmatrix} \begin{bmatrix} x \\ y \\ 1 \end{bmatrix}$$
 
-$$X_m = \frac{X_w}{W_w} = \frac{H_{11}x + H_{12}y + H_{13}}{H_{31}x + H_{32}y + H_{33}}$$
+$$X_m(x,y) = \frac{h_{11}x + h_{12}y + h_{13}}{h_{31}x + h_{32}y + h_{33}}$$
 
-$$Y_m = \frac{Y_w}{W_w} = \frac{H_{21}x + H_{22}y + H_{23}}{H_{31}x + H_{32}y + H_{33}}$$
+$$Y_m(x,y) = \frac{h_{21}x + h_{22}y + h_{23}}{h_{31}x + h_{32}y + h_{33}}$$
 
-#### Fixed-Point Implementation (Q16.16 Format)
-On the ESP32-S3, float arithmetic is replaced by fixed-point operations to conserve clock cycles:
-$$\bar{x} = x \cdot 2^{16}, \quad \bar{y} = y \cdot 2^{16}$$
-$$\bar{W}_w = \left( (H_{31} \cdot x + H_{32} \cdot y) \cdot 2^{-16} + H_{33} \cdot 2^{16} \right)$$
-$$\bar{X}_m = \text{div\_q16}\left( H_{11} \cdot x + H_{12} \cdot y + H_{13} \cdot 2^{16}, \bar{W}_w \right)$$
+#### Algorithmic Implementation (Q16.16 Fixed-Point)
+For microcontroller execution, floating-point math is replaced by fixed-point representation where $x \cdot 2^{16} = \bar{x}$.
+1.  **Numerator Computations:**
+    $$\bar{N}_x = h_{11}\bar{x} + h_{12}\bar{y} + h_{13}\cdot 2^{16}$$
+    $$\bar{N}_y = h_{21}\bar{x} + h_{22}\bar{y} + h_{23}\cdot 2^{16}$$
+2.  **Denominator Computation:**
+    $$\bar{D} = h_{31}\bar{x} + h_{32}\bar{y} + h_{33}\cdot 2^{16}$$
+3.  **Numerical Stability Guard:**
+    $$\text{if } |\bar{D}| < \text{THRESHOLD} \quad \text{then} \quad \text{abort\_projection}()$$
+4.  **Bilinear Division:**
+    $$\bar{X}_m = (\bar{N}_x \ll 16) / \bar{D}, \quad \bar{Y}_m = (\bar{N}_y \ll 16) / \bar{D}$$
 
-### 2.2 Metric Derivatives & Filtering
-To calculate velocity $\mathbf{v}$, acceleration $\mathbf{a}$, and jerk $\mathbf{j}$, finite difference calculations are performed. Let $\Delta t$ be the frame interval (typically $33.33 \\text{ ms}$ for $30 \\text{ FPS}$):
+---
 
-$$\mathbf{v}(t) = \frac{\mathbf{X}(t) - \mathbf{X}(t-1)}{\Delta t}$$
+### 2.2 Numerical Derivatives & Smoothing
+High-frequency noise is amplified during sequential differentiation. To prevent signal breakdown, a Savitzky-Golay filter is applied over a 3-frame rolling window.
 
-To eliminate noise amplification caused by consecutive differentiations, a 3-tap Savitzky-Golay smoothing window is applied to the velocity vectors:
+#### Step 1: Discrete Finite Velocity Difference
+$$\mathbf{v}(t) = \frac{\mathbf{X}_m(t) - \mathbf{X}_m(t-1)}{\Delta t}$$
 
-$$\mathbf{v}_{\text{smooth}}(t) = \frac{3\mathbf{v}(t) + 2\mathbf{v}(t-1) + \mathbf{v}(t-2)}{6}$$
+#### Step 2: Smoothing Convolution
+$$\mathbf{v}_{\text{smooth}}(t) = \sum_{k=0}^2 c_k \mathbf{v}(t-k) \quad \text{where} \quad c_0 = \frac{1}{2}, c_1 = \frac{1}{3}, c_2 = \frac{1}{6}$$
 
-Acceleration and jerk vectors are computed sequentially from this smoothed velocity:
-
+#### Step 3: Second and Third Derivatives
 $$\mathbf{a}(t) = \frac{\mathbf{v}_{\text{smooth}}(t) - \mathbf{v}_{\text{smooth}}(t-1)}{\Delta t}$$
 
 $$\mathbf{j}(t) = \frac{\mathbf{a}(t) - \mathbf{a}(t-1)}{\Delta t}$$
 
+---
+
 ### 2.3 Statistical Surprise Gating
-We keep track of normal patterns using a dynamic Exponentially Weighted Moving Average (EWMA) and variance baseline updated on non-triggering frames:
+We define the standardized surprise metric $S_j(t)$ using rolling baseline parameters $(\mu_t, \sigma_t^2)$ maintained per device:
 
-$$\mu_t = (1 - \alpha)\mu_{t-1} + \alpha \|\mathbf{j}_t\|$$
+$$\mu_t = (1 - \alpha)\mu_{t-1} + \alpha \|\mathbf{j}(t)\|_2$$
 
-$$\sigma^2_t = (1 - \alpha)\sigma^2_{t-1} + \alpha (\|\mathbf{j}_t\| - \mu_t)^2$$
+$$\sigma^2_t = (1 - \alpha)\sigma^2_{t-1} + \alpha \left(\|\mathbf{j}(t)\|_2 - \mu_t\right)^2$$
 
-where $\alpha$ is set to $0.05$ (equivalent to a 20-frame observation window). Standardized surprise is calculated as:
+$$S_j(t) = \frac{\|\mathbf{j}(t)\|_2 - \mu_t}{\sqrt{\sigma^2_t + \epsilon_0}} \quad \text{where} \quad \alpha = 0.05, \epsilon_0 = 10^{-4}$$
 
-$$S_j = \frac{\|\mathbf{j}_t\| - \mu_t}{\sqrt{\sigma^2_t + \epsilon}} \quad \text{where} \quad \epsilon = 10^{-4}$$
+The binary trigger output $T(t)$ is defined as:
 
-The trigger condition is defined as:
+$$T(t) = \mathbb{I}\left( \sum_{i=0}^{4} \mathbb{I}(S_j(t-i) > 3.5) \ge 3 \right)$$
 
-$$T_t = \begin{cases} 1 & \text{if } \sum_{i=0}^{m-1} \mathbb{I}(S_{j, t-i} > \kappa) \ge k \\ 0 & \text{otherwise} \end{cases}$$
-
-For the target implementation, parameters are set to: $\kappa = 3.5$, $m = 5$, and $k = 3$.
+---
 
 ### 2.4 Shannon Motion Entropy
-Let $B$ be the number of directional bins ($B=8$, covering $45^\circ$ sectors). Let $C_b$ be the count of flow vectors in bin $b$, and $V_b$ be the sum of velocity magnitudes in bin $b$. The probability of flow in direction $b$ is:
+Let the velocity vectors be binned into $B=8$ angular sectors $\theta_b \in [0, 2\pi)$. The probability density $p_b$ of each sector is:
 
-$$p_b = \frac{C_b \cdot V_b}{\sum_{i=1}^B C_i \cdot V_i}$$
+$$p_b = \frac{\sum_{i=1}^{N_{\text{flow}}} \|\mathbf{v}_i\|_2 \cdot \mathbb{I}(\text{Angle}(\mathbf{v}_i) \in \theta_b)}{\sum_{k=1}^B \sum_{i=1}^{N_{\text{flow}}} \|\mathbf{v}_i\|_2 \cdot \mathbb{I}(\text{Angle}(\mathbf{v}_i) \in \theta_k)}$$
 
-The Shannon entropy is calculated as:
+The Shannon entropy is computed as:
 
 $$H_t = -\sum_{b=1}^B p_b \log_2 (p_b + \delta_0) \quad \text{where} \quad \delta_0 = 10^{-6}$$
 
 The **Panic Index** $\Pi_t$ tracking the rate of rise is:
 
-$$\Pi_t = \max\left(0, \frac{H_t - H_{t-1}}{\Delta t}\right) \cdot \left( \frac{1}{N_{\text{flow}}}\sum_{j=1}^{N_{\text{flow}}} \|\mathbf{v}_j\| \right)$$
+$$\Pi_t = \max\left(0, \frac{H_t - H_{t-1}}{\Delta t}\right) \cdot \left( \frac{1}{N_{\text{flow}}}\sum_{j=1}^{N_{\text{flow}}} \|\mathbf{v}_j\|_2 \right)$$
 
 ---
 
 ## 3. Layer 2: Regional Calibrated Fusion
 
-### 3.1 Platt Calibration
-Softmax confidence outputs $f_s$ of semantic detectors are calibrated using Platt temperature scaling to produce reliable probabilities:
+### 3.1 Platt Calibration (Temperature Scaling)
+Raw logits $f_s$ from semantic models (YOLOv8n, BlazePose) are mapped to calibrated probabilities:
 
-$$P(z_s) = \frac{1}{1 + \exp(A_s f_s + B_s)}$$
+$$P(z_s) = \frac{1}{1 + \exp\left(A_s f_s + B_s\right)}$$
+
+where parameters $A_s, B_s$ are optimized via cross-entropy minimization on validation datasets:
+
+$$\min_{A_s, B_s} -\frac{1}{M}\sum_{i=1}^M \left[ y_i \ln P(z_{s,i}) + (1 - y_i) \ln (1 - P(z_{s,i})) \right]$$
 
 ### 3.2 Time-Recursive Bayesian Log-Odds Fusion
-Let $\mathcal{S}$ be the set of active sensor sources $\mathcal{S} = \{\text{Kinematics}, \text{Object}, \text{Pose}, \text{Temporal}\}$.
+Incoming probabilities are mapped to log-odds $\ell_t = \ln \left( \frac{P_t}{1 - P_t} \right)$. The state transition update is:
 
-For each sensor $s$, the log-likelihood ratio $LR_s(z_s)$ is computed as:
-
-$$\ln LR_s(z_{s,t}) = \ln \left( \frac{P(z_{s,t} | \text{Anomaly})}{P(z_{s,t} | \text{Normal})} \right)$$
-
-The recursive log-odds accumulator $\ell_t$ is defined as:
-
-$$\ell_t = \gamma \ell_{t-1} + \sum_{s \in \mathcal{S}} \beta_s \ln LR_s(z_{s,t})$$
+$$\ell_t = \gamma \ell_{t-1} + \sum_{s \in \mathcal{S}} \beta_s \ln \left( \frac{P(z_{s,t})}{1 - P(z_{s,t})} \right)$$
 
 where:
-*   $\gamma \in [0.90, 0.98]$ represents the temporal decay factor.
-*   $\beta_s$ represents the learned reliability weights.
+*   $\gamma \in [0, 1]$ is the temporal decay factor ($0.95$).
+*   $\beta_s$ represents the sensor reliability weights, optimized using regularized ECE minimization:
 
-The final posterior probability is computed via the sigmoid function:
+$$\min_{\boldsymbol{\beta}} \text{ECE}(\sigma(\boldsymbol{\ell}); \mathbf{y}) + \lambda_r \|\boldsymbol{\beta}\|^2_2$$
 
-$$P(\text{Anomaly} | z_{1:t}) = \sigma(\ell_t) = \frac{1}{1 + e^{-\ell_t}}$$
-
-The reliability weights $\boldsymbol{\beta}$ are optimized using regularized ECE minimization:
-
-$$\min_{\boldsymbol{\beta}} \frac{1}{M}\sum_{m=1}^M \left| \text{conf}(B_m) - \text{acc}(B_m) \right| + \lambda_{\text{reg}} \|\boldsymbol{\beta}\|^2_2$$
+$$\text{ECE} = \sum_{m=1}^M \frac{|B_m|}{N} \left| \text{acc}(B_m) - \text{conf}(B_m) \right|$$
 
 ---
 
@@ -129,11 +135,11 @@ $$\min_{\boldsymbol{\beta}} \frac{1}{M}\sum_{m=1}^M \left| \text{conf}(B_m) - \t
 ### 4.1 Spectral Graph Instability
 We define the spatiotemporal human interaction graph $G = (V, E)$. Let $p$ and $q$ be detected human nodes. The adjacency matrix $\mathbf{A} \in \mathbb{R}^{N \times N}$ is defined as:
 
-$$A_{pq} = \exp\left(-\sigma_1 \|\mathbf{X}_p - \mathbf{X}_q\|^2\right) \cdot \max\left(0, \cos \theta_{pq}\right)$$
+$$A_{pq} = \exp\left(-\sigma_1 \|\mathbf{X}_p - \mathbf{X}_q\|^2_2\right) \cdot \max\left(0, \cos \theta_{pq}\right)$$
 
 where $\theta_{pq}$ represents the angle between the velocity vectors $\mathbf{v}_p$ and $\mathbf{v}_q$:
 
-$$\cos \theta_{pq} = \frac{\mathbf{v}_p \cdot \mathbf{v}_q}{\|\mathbf{v}_p\| \|\mathbf{v}_q\|}$$
+$$\cos \theta_{pq} = \frac{\mathbf{v}_p \cdot \mathbf{v}_q}{\|\mathbf{v}_p\|_2 \|\mathbf{v}_q\|_2}$$
 
 The Degree matrix $\mathbf{D}$ is diagonal: $D_{ii} = \sum_{j} A_{ij}$. The Normalized Laplacian $\mathcal{L}$ is:
 
@@ -150,14 +156,14 @@ $$\hat{\mathbf{z}} = \mathbf{w} \cdot \mathbf{M} = \sum_{c=1}^C w_c \mathbf{M}_c
 
 where $w_c$ is calculated via softmax over cosine similarity scores:
 
-$$w_c = \frac{\exp(d(\mathbf{z}, \mathbf{M}_c))}{\sum_{j=1}^C \exp(d(\mathbf{z}, \mathbf{M}_j))} \quad \text{where} \quad d(\mathbf{a},\mathbf{b}) = \frac{\mathbf{a} \cdot \mathbf{b}}{\|\mathbf{a}\| \|\mathbf{b}\|}$$
+$$w_c = \frac{\exp(d(\mathbf{z}, \mathbf{M}_c))}{\sum_{j=1}^C \exp(d(\mathbf{z}, \mathbf{M}_j))} \quad \text{where} \quad d(\mathbf{a},\mathbf{b}) = \frac{\mathbf{a} \cdot \mathbf{b}}{\|\mathbf{a}\|_2 \|\mathbf{b}\|_2}$$
 
 The reconstruction error $r$ and latent Mahalanobis distance $m$ are combined into the anomaly score $A$:
 
 $$A = \rho \frac{\|\mathbf{X} - \hat{\mathbf{X}}\|^2_2}{\text{dim}(\mathbf{X})} + (1 - \rho)\left(1 - \exp\left(-0.5 (\mathbf{z} - \boldsymbol{\mu}_z)^T \boldsymbol{\Sigma}_z^{-1} (\mathbf{z} - \boldsymbol{\mu}_z)\right)\right)$$
 
 ### 4.3 Calibrated Risk Opinion Pool (CROP)
-Individual probabilities $P_k$ (from graph, pose, and autoencoder channels) are aggregated:
+Individual risk outputs $P_k$ (from graph, pose, and autoencoder channels) are aggregated:
 
 $$\log R = \sum_{k=1}^K \pi_k \log P_k - \log Z$$
 
