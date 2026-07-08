@@ -174,7 +174,7 @@ $$Z = \int_{0}^{1} \exp\left(\sum_{k=1}^K \pi_k \log P\right) dP = \int_{0}^{1} 
 ### 4.4 Adaptive Conformal Prediction
 Let $E_i = \lvert Y_i - R_i \rvert$ be the calibration residuals. The adaptive threshold is updated using a rolling history of size $N_c$:
 
-$$q_{1-\alpha} = \inf \left\{ q : \frac{1}{N_c}\sum_{i=t-N_c}^{t-1} \mathbb{I}(E_i \le q) \ge 1 - \alpha \right\}$$
+$$q_{1-\alpha} = \inf \left\lbrace q : \frac{1}{N_c}\sum_{i=t-N_c}^{t-1} \mathbb{I}(E_i \le q) \ge 1 - \alpha \right\rbrace$$
 
 An alarm is triggered if:
 
