@@ -52,7 +52,7 @@ For microcontroller execution, floating-point math is replaced by fixed-point re
 2.  **Denominator Computation:**
     $$\bar{D} = h_{31}\bar{x} + h_{32}\bar{y} + h_{33}\cdot 2^{16}$$
 3.  **Numerical Stability Guard:**
-    $$\text{if } |\bar{D}| < \text{THRESHOLD} \quad \text{then} \quad \text{abort\_projection}()$$
+    $$\text{if } \lvert\bar{D}\rvert < \text{THRESHOLD} \quad \text{then} \quad \text{abort-projection}()$$
 4.  **Bilinear Division:**
     $$\bar{X}_m = (\bar{N}_x \ll 16) / \bar{D}, \quad \bar{Y}_m = (\bar{N}_y \ll 16) / \bar{D}$$
 
@@ -126,7 +126,7 @@ where:
 
 $$\min_{\boldsymbol{\beta}} \text{ECE}(\sigma(\boldsymbol{\ell}); \mathbf{y}) + \lambda_r \|\boldsymbol{\beta}\|^2_2$$
 
-$$\text{ECE} = \sum_{m=1}^M \frac{|B_m|}{N} \left| \text{acc}(B_m) - \text{conf}(B_m) \right|$$
+$$\text{ECE} = \sum_{m=1}^M \frac{\lvert B_m\rvert}{N} \left\lvert \text{acc}(B_m) - \text{conf}(B_m) \right\rvert$$
 
 ---
 
@@ -172,7 +172,7 @@ where $\pi_k = \frac{1}{\sigma_k^2}$ represents the precision (inverse variance)
 $$Z = \int_{0}^{1} \exp\left(\sum_{k=1}^K \pi_k \log P\right) dP = \int_{0}^{1} P^{\sum \pi_k} dP = \frac{1}{\sum_k \pi_k + 1}$$
 
 ### 4.4 Adaptive Conformal Prediction
-Let $E_i = |Y_i - R_i|$ be the calibration residuals. The adaptive threshold is updated using a rolling history of size $N_c$:
+Let $E_i = \lvert Y_i - R_i \rvert$ be the calibration residuals. The adaptive threshold is updated using a rolling history of size $N_c$:
 
 $$q_{1-\alpha} = \inf \left\{ q : \frac{1}{N_c}\sum_{i=t-N_c}^{t-1} \mathbb{I}(E_i \le q) \ge 1 - \alpha \right\}$$
 
@@ -191,7 +191,7 @@ $$\min_{\pi} \mathbb{E}[\text{Cost}(\pi)] \quad \text{s.t.} \quad \mathbb{E}[\te
 
 We write the Lagrangian optimization as:
 
-$$\mathcal{L}(\pi, \lambda) = \sum_{j} P_j \text{Cost}(tier_j) + \lambda \left( \sum_{j} P_j \text{Risk}(tier_j) - \delta \right)$$
+$$\mathcal{L}(\pi, \lambda) = \sum_{j} P_j \text{Cost}(\text{tier}_j) + \lambda \left( \sum_{j} P_j \text{Risk}(\text{tier}_j) - \delta \right)$$
 
 Solving for the optimal policy routing bounds:
 
