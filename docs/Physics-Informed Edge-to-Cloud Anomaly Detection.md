@@ -87,9 +87,9 @@ In Short:
      * (III) Crowd panic \= synchronized acceleration
 
 4. **Motion Energy Model** Physics-inspired formula:  
-   * Energy \= (v2+a2)  
-   * A stable scene \= low energy.  
-   * Abnormal \= energy spike  
+   * Energy = (v²/v²_ref + a²/a²_ref)  (non-dimensionalized)  
+   * A stable scene = low energy.  
+   * Abnormal = energy spike  
    *   
 5. **Interaction Geometry**  If multiple blobs are detected:  
    * (I) Compute: Distance matrix, Relative velocity, Convergence rate  
@@ -100,7 +100,7 @@ In Short:
 # **Page 2: Entropy Monitoring & Layer 1 Summary**
 
 6. **Entropy Monitoring**  Shannon entropy of motion distribution  
-   * H(x) \= \-i=1n p(xi)log2 (p(xi));prob of xip(xi)
+   * H(x) = -Σ_{i=1}^{n} p(x_i) log2(p(x_i))
 
 **Output:**
 
@@ -146,7 +146,7 @@ In Short:
 3. **Short Temporal Pattern Model**  Small CNN/GRU analyzing:  
    * Detect  Escalation pattern, Repeated aggressive gestures  
 4. **Bayesian Fusion Engine**  
-   * Mathematical Fusion  Posterior  Likelihood Prior  
+   * Mathematical Fusion  Posterior = (Likelihood x Prior) / Evidence  
    * Combine  Physics
 
 **Output:** Posterior event probability
@@ -350,7 +350,7 @@ Physics anomalies are often very short (a fraction of a second), while behaviora
 
 | Component | Current State | Improved State |
 | :---- | :---- | :---- |
-| **Math** | **Pixel-based derivatives** | **Real-world** (m/s2)**(via Homography)** |
+| **Math** | **Pixel-based derivatives** | **Real-world** (m/s3)**(via Homography)** |
 | **Alarms** | **Fixed Thresholds** | **Adaptive Baselines (Statistical)** |
 | **Privacy** | **Compressed Keyframes** | **Anonymized Skeletal Vectors** |
 | **Logic** | **Instantaneous Detection** | **Temporal Window Analysis (5s Buffer)** |

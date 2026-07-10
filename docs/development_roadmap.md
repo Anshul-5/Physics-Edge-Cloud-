@@ -36,7 +36,7 @@ gantt
 
 ### Phase 3: Layer 3 & 4 Cloud Reasoning & Cost Control (Months 7–9)
 *   **Deliverables:** Cloud Graph Interaction Model, Memory Autoencoder, and adaptive orchestration controllers.
-*   **Milestone 3.1:** Conformal prediction intervals achieving $95\%$ coverage guarantees on non-stationary datasets.
+*   **Milestone 3.1:** Conformal prediction intervals achieving $\ge 90\%$ empirical coverage on non-stationary datasets using time-adaptive conformal inference; report empirical coverage as the primary metric (the theoretical 95% marginal coverage guarantee applies only under exchangeability).
 *   **Milestone 3.2:** Execute Lagrangian compute routing proving $\ge 40\%$ reduction in cloud expenses compared to baseline cloud-only pipelines.
 
 ### Phase 4: Governance, Security, and Compliance (Months 10–11)

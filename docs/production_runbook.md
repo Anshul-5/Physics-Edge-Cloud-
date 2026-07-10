@@ -40,7 +40,8 @@ The model registry monitors telemetry packets to calculate population stability.
 
 ### Input Drift (Covariate Shift)
 *   **Metric:** Kullback-Leibler (KL) Divergence on the incoming optical flow velocity distributions $P(X)$ versus baseline validation sets $Q(X)$:
-    $$D_{\text{KL}}(P \mathbin{\Vert} Q) = \sum_{x \in \mathcal{X}} P(x) \log \frac{P(x)}{Q(x)}$$
+    $$D_{\text{KL}}(P \mathbin{\Vert} Q) \approx \sum_{i} P(b_i) \log \frac{P(b_i)}{Q(b_i)} \cdot \Delta v$$
+    where $b_i$ are velocity bins of width $\Delta v$ (discretized approximation of the continuous KL divergence).
 *   **Threshold:** If $D_{\text{KL}} > 0.5$ for $24$ consecutive hours, raise a low-priority telemetry alarm. No retraining is triggered.
 
 ### Concept Drift
@@ -51,8 +52,8 @@ The model registry monitors telemetry packets to calculate population stability.
 To promote a challenger model from the shadow retraining pipeline to production:
 1.  Verify performance on the frozen benchmark validation set.
 2.  The challenger must exceed the champion’s frame-level Area Under the Precision-Recall curve (AUPRC) by a statistically significant margin:
-    $$\text{AUPRC}_{\text{challenger}} - \text{AUPRC}_{\text{champion}} \ge 1.96 \times \text{SE}_{\text{diff}}$$
-    where $\text{SE}_{\text{diff}}$ represents the combined standard error of the performance metrics.
+    $$\text{AUPRC}_{\text{challenger}} - \text{AUPRC}_{\text{champion}} \ge 1.645 \times \text{SE}_{\text{diff}}$$
+    where $\text{SE}_{\text{diff}} = \sqrt{\text{SE}_{\text{challenger}}^2 + \text{SE}_{\text{champion}}^2}$ is the combined standard error of the difference (one-sided test at $\alpha = 0.05$), with each SE estimated via 1000-fold bootstrap on the frozen validation set.
 
 ---
 
@@ -60,7 +61,8 @@ To promote a challenger model from the shadow retraining pipeline to production:
 
 ### Compute Orchestrator Optimization
 Layer 4 operates a Lagrangian threshold policy balancing cloud compute cost against missed anomaly risks:
-$$\mathcal{L}(\theta) = \mathbb{E}[\text{Cloud Cost}] + \lambda \big(\mathbb{E}[\text{Missed Detection Anomaly}] - \delta\big)$$
+$$\mathcal{L}(\theta) = \frac{\mathbb{E}[\text{Cloud Cost}]}{C_{\text{ref}}} + \lambda \big(\mathbb{E}[\text{Missed Detection Rate}] - \delta\big)$$
+where $C_{\text{ref}}$ is a reference cost (e.g., baseline cloud-only pipeline cost) that normalizes the cost term to a dimensionless ratio, ensuring dimensional consistency with the probability-based risk term.
 *   **High Risk Event:** If L2 escalates a posterior risk $\ge 0.70$, run the full Cloud suite (L3-Graph + AE).
 *   **Medium Risk Event:** Posterior risk $[0.30, 0.70)$, run L3-AE but bypass Graph Spectral analysis.
 *   **Low Risk Event:** Posterior risk $< 0.30$, terminate execution, archive local metadata, and skip cloud processing.

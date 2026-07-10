@@ -25,7 +25,7 @@ This document establishes the mathematical foundation for the **PhysEdge-Cloud**
 | $\mathbf{H}$ | Projective planar homography operator | Dimensionless | $3 \times 3$ Matrix |
 | $\mathbf{j}(t)$ | Third-order temporal derivative of displacement (Jerk) | $m/s^3$ | $2 \times 1$ Vector |
 | $S_j(t)$ | Standardized statistical anomaly surprise value | Dimensionless | Scalar |
-| $\Pi(t)$ | Directional motion entropy rate (Panic Index) | $s^{-1}$ | Scalar |
+| $\Pi(t)$ | Directional motion entropy rate (Panic Index) | $m/s^2$ | Scalar |
 | $\ell_t$ | Logarithmic odds of anomaly probability | Nat / Log-Odds | Scalar |
 | $\lambda_2$ | Algebraic connectivity of graph Laplacian (Fiedler value)| Dimensionless | Scalar |
 | $q_{1-\alpha}$ | Conformal error margin quantile threshold | Probability | Scalar |
@@ -47,8 +47,8 @@ $$Y_m(x,y) = \frac{h_{21}x + h_{22}y + h_{23}}{h_{31}x + h_{32}y + h_{33}}$$
 #### Algorithmic Implementation (Q16.16 Fixed-Point)
 For microcontroller execution, floating-point math is replaced by fixed-point representation where $x \cdot 2^{16} = \bar{x}$.
 1.  **Numerator Computations:**
-    $$\bar{N}_x = h_{11}\bar{x} + h_{12}\bar{y} + h_{13}\cdot 2^{16}$$
-    $$\bar{N}_y = h_{21}\bar{x} + h_{22}\bar{y} + h_{23}\cdot 2^{16}$$
+    $$\bar{N}_x = (h_{11}\bar{x} \gg 16) + (h_{12}\bar{y} \gg 16) + h_{13}$$
+    $$\bar{N}_y = (h_{21}\bar{x} \gg 16) + (h_{22}\bar{y} \gg 16) + h_{23}$$
 2.  **Denominator Computation:**
     $$\bar{D} = h_{31}\bar{x} + h_{32}\bar{y} + h_{33}\cdot 2^{16}$$
 3.  **Numerical Stability Guard:**
@@ -59,7 +59,7 @@ For microcontroller execution, floating-point math is replaced by fixed-point re
 ---
 
 ### 2.2 Numerical Derivatives & Smoothing
-High-frequency noise is amplified during sequential differentiation. To prevent signal breakdown, a Savitzky-Golay filter is applied over a 3-frame rolling window.
+High-frequency noise is amplified during sequential differentiation. To prevent signal breakdown, a weighted smoothing filter is applied over a 3-frame rolling window.
 
 #### Step 1: Discrete Finite Velocity Difference
 $$\mathbf{v}(t) = \frac{\mathbf{X}_m(t) - \mathbf{X}_m(t-1)}{\Delta t}$$
@@ -79,7 +79,7 @@ We define the standardized surprise metric $S_j(t)$ using rolling baseline param
 
 $$\mu_t = (1 - \alpha)\mu_{t-1} + \alpha \|\mathbf{j}(t)\|_2$$
 
-$$\sigma^2_t = (1 - \alpha)\sigma^2_{t-1} + \alpha \left(\|\mathbf{j}(t)\|_2 - \mu_t\right)^2$$
+$$\sigma^2_t = (1 - \alpha)\sigma^2_{t-1} + \alpha \left(\|\mathbf{j}(t)\|_2 - \mu_{t-1}\right)^2$$
 
 $$S_j(t) = \frac{\|\mathbf{j}(t)\|_2 - \mu_t}{\sqrt{\sigma^2_t + \epsilon_0}} \quad \text{where} \quad \alpha = 0.05, \epsilon_0 = 10^{-4}$$
 
@@ -98,9 +98,11 @@ The Shannon entropy is computed as:
 
 $$H_t = -\sum_{b=1}^B p_b \log_2 (p_b + \delta_0) \quad \text{where} \quad \delta_0 = 10^{-6}$$
 
-The **Panic Index** $\Pi_t$ tracking the rate of rise is:
+The **Panic Index** $\Pi_t$ tracking the rate of rise (weighted by mean flow velocity) is:
 
 $$\Pi_t = \max\left(0, \frac{H_t - H_{t-1}}{\Delta t}\right) \cdot \left( \frac{1}{N_{\text{flow}}}\sum_{j=1}^{N_{\text{flow}}} \|\mathbf{v}_j\|_2 \right)$$
+
+> **Note:** The notation table lists $\Pi(t)$ units as $m/s^2$: the entropy rate ($s^{-1}$) multiplied by mean velocity ($m/s$) yields acceleration-scale units.
 
 ---
 
@@ -139,7 +141,7 @@ $$A_{pq} = \exp\left(-\sigma_1 \|\mathbf{X}_p - \mathbf{X}_q\|^2_2\right) \cdot 
 
 where $\theta_{pq}$ represents the angle between the velocity vectors $\mathbf{v}_p$ and $\mathbf{v}_q$:
 
-$$\cos \theta_{pq} = \frac{\mathbf{v}_p \cdot \mathbf{v}_q}{\|\mathbf{v}_p\|_2 \|\mathbf{v}_q\|_2}$$
+$$\cos \theta_{pq} = \begin{cases} \frac{\mathbf{v}_p \cdot \mathbf{v}_q}{\|\mathbf{v}_p\|_2 \|\mathbf{v}_q\|_2} & \text{if } \|\mathbf{v}_p\|_2 > \epsilon \text{ and } \|\mathbf{v}_q\|_2 > \epsilon \\ 0 & \text{otherwise (stationary node)} \end{cases}$$
 
 The Degree matrix $\mathbf{D}$ is diagonal: $D_{ii} = \sum_{j} A_{ij}$. The Normalized Laplacian $\mathcal{L}$ is:
 
@@ -162,14 +164,18 @@ The reconstruction error $r$ and latent Mahalanobis distance $m$ are combined in
 
 $$A = \rho \frac{\|\mathbf{X} - \hat{\mathbf{X}}\|^2_2}{\text{dim}(\mathbf{X})} + (1 - \rho)\left(1 - \exp\left(-0.5 (\mathbf{z} - \boldsymbol{\mu}_z)^T \boldsymbol{\Sigma}_z^{-1} (\mathbf{z} - \boldsymbol{\mu}_z)\right)\right)$$
 
+where $\psi(m) = 1 - \exp(-m)$ is a monotone bounded transform applied to the Mahalanobis distance $m = \sqrt{(\mathbf{z} - \boldsymbol{\mu}_z)^T \boldsymbol{\Sigma}_z^{-1} (\mathbf{z} - \boldsymbol{\mu}_z)}$.
+
 ### 4.3 Calibrated Risk Opinion Pool (CROP)
 Individual risk outputs $P_k$ (from graph, pose, and autoencoder channels) are aggregated:
 
 $$\log R = \sum_{k=1}^K \pi_k \log P_k - \log Z$$
 
-where $\pi_k = \frac{1}{\sigma_k^2}$ represents the precision (inverse variance) of source $k$. The partition normalizing constant $Z$ is:
+where $\pi_k = \frac{1}{\sigma_k^2}$ represents the precision (inverse variance) of source $k$. The normalizing constant $Z$ ensures $R$ is a valid probability:
 
-$$Z = \int_{0}^{1} \exp\left(\sum_{k=1}^K \pi_k \log P\right) dP = \int_{0}^{1} P^{\sum \pi_k} dP = \frac{1}{\sum_k \pi_k + 1}$$
+$$Z = \sum_{C'} \exp\left(\sum_{k=1}^K \pi_k \log P_k(C')\right)$$
+
+summing over all risk classes $C'$, so that $R = \frac{1}{Z}\prod_k P_k^{\pi_k}$ is properly normalized to $[0, 1]$.
 
 ### 4.4 Adaptive Conformal Prediction
 Let $E_i = \lvert Y_i - R_i \rvert$ be the calibration residuals. The adaptive threshold is updated using a rolling history of size $N_c$:
@@ -193,11 +199,11 @@ We write the Lagrangian optimization as:
 
 $$\mathcal{L}(\pi, \lambda) = \sum_{j} P_j \text{Cost}(\text{tier}_j) + \lambda \left( \sum_{j} P_j \text{Risk}(\text{tier}_j) - \delta \right)$$
 
-Solving for the optimal policy routing bounds:
+Solving for the optimal policy routing bounds via the KKT conditions:
 
-$$\theta^* = \frac{\partial \text{Cost}}{\partial \text{Risk}} = -\lambda$$
+$$\frac{\partial \text{Cost}/\partial \pi_j}{\partial \text{Risk}/\partial \pi_j} = -\lambda \quad \text{(for all active policy variables } j\text{)}$$
 
-This dictates the threshold boundaries for routing decisions.
+This dictates the threshold boundaries for routing decisions: at optimality, the marginal cost increase per unit risk increase equals $\lambda$.
 
 ---
 
