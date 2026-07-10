@@ -94,15 +94,15 @@ The pipeline and its ordering are unchanged. Compute is escalated in proportion 
 
 **Motion energy** (flow-confidence-weighted; replaces the ad-hoc v²+a²):
 
-**[NEW-Eq 4]**   *E = Σᵢ wᵢ(λ₁‖vₘ,ᵢ‖²+λ₂‖aₘ,ᵢ‖²+λ₃‖jₘ,ᵢ‖²)/Σᵢ wᵢ*
+**[NEW-Eq 4]**   *E = Σᵢ wᵢ(λ₁‖vₘ,ᵢ‖²/v²_ref + λ₂‖aₘ,ᵢ‖²/a²_ref + λ₃‖jₘ,ᵢ‖²/j²_ref)/Σᵢ wᵢ   (non-dimensionalized)*
 
 **Directional motion entropy and panic index.** Entropy of magnitude-weighted flow-direction histogram; the panic index uses its rate of rise.
 
-**[STD] / [NEW-Eq 5]**   *Hₜ = −Σ_b p_b log₂ p_b ;  Πₜ = max(0, dHₜ/dt)·ᵽₜ   (panic index [NEW])*
+**[NEW-Eq 5]**   *Hₜ = −Σ_b p_b log₂ p_b ;  Πₜ = max(0, dHₜ/dt)·(1/N_flow)Σ‖vⱼ‖   (panic index [NEW], units: m/s²)*
 
 **Interaction geometry** for blob pairs (convergence and time-to-collision proxy): rapid collision and aggressive approach are flagged.
 
-**[NEW-Eq 6]**   *C_{pq} = −d‖X_p−X_q‖/dt ;  TTC_{pq} ≈ ‖X_p−X_q‖ / max(C_{pq},ε)*
+**[NEW-Eq 6]**   *C_{pq} = −d‖X_p−X_q‖/dt ;  TTC_{pq} = ‖X_p−X_q‖/C_{pq} if C_{pq} > 0, else ∞*
 
 **Outputs:** motion_energy_score, interaction_instability_score, entropy/panic score, suspicion_probability, compressed keyframes, plus a **dominant-cause tag** [NEW] for explainability. **Rationale:** low power, no GPU, reduced bandwidth, explainable, filters 80–90% of normal scenes (RQ1).
 
@@ -132,11 +132,11 @@ The pipeline and its ordering are unchanged. Compute is escalated in proportion 
 
 **Reconstruction model.** A memory-augmented autoencoder trained only on normal behavior; the anomaly score combines normalized reconstruction error with latent Mahalanobis distance to avoid the “reconstructs anomalies too well” failure.
 
-**[NEW-Eq 10]**   *r=‖X−X̂‖²/d;  m=√((z−μ_z)ᵀΣ_z⁻¹(z−μ_z));  A=ρr+(1−ρ)ψ(m)*
+**[NEW-Eq 10]**   *r=‖X−X̂‖²/d;  m=√((z−μ_z)ᵀΣ_z⁻¹(z−μ_z));  A=ρr+(1−ρ)(1−exp(−m))  (ψ(m)=1−exp(−m), monotone bounded transform)*
 
 **[NEW]**  **Risk aggregation — calibrated opinion pool (replaces the weighted sum of W1…W4).** Each instability source (motion, graph, pose, reconstruction) contributes a probability weighted by its inverse variance (precision), combined in log space; the result is wrapped in conformal prediction for a distribution-free risk interval.
 
-**[NEW-Eq 11]**   *log R ∝ Σ_k π_k log P_k ,  π_k = 1/σ²_k   (CROP)*
+**[NEW-Eq 11]**   *log R ∝ Σ_k π_k log P_k ,  π_k = 1/σ²_k   (CROP, normalized via Z = Σ_C' exp(Σ_k π_k log P_k(C')))*
 
 **[NEW-Eq 12]**   *Alarm iff R ≥ q_{1−α};  P(false alarm) ≤ α on exchangeable data   (conformal)*
 

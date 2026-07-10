@@ -44,7 +44,7 @@ graph TD
 *   **Core Logic:**
     1.  **Downscaling:** Resizes input video stream from raw sensor resolution to $160 \times 120$ in fixed-point.
     2.  **Optical Flow:** Computes block-based fixed-point optical flow $v(x,y)$ to construct velocity fields.
-    3.  **Perspective Normalization:** Applies a stored $3 \times 3$ homography matrix $H$ mapping pixel-space velocity to ground-plane metric velocity $v_m$, acceleration $a_m$, and jerk $j_m$ in SI units ($m/s$, $m/s^2$, $m/s^3$).
+    3.  **Perspective Normalization:** Applies a stored $3 \times 3$ homography matrix $H$ mapping pixel-space positions to ground-plane metric positions; velocity, acceleration, and jerk are computed as temporal derivatives of the mapped positions in SI units ($m/s$, $m/s^2$, $m/s^3$).
     4.  **Kinematic Gating:** Evaluates rolling Z-scores of metric jerk against a statistical baseline (exponentially weighted moving average / variance) maintained per camera and per time-of-day bucket.
     5.  **Directional Entropy:** Tracks Shannon entropy of motion vectors to flag coordinated panic behavior.
     6.  **Temporal Conflict Buffer:** Maintains a 5–10 second circular ring buffer of skeletal joint positions and motion vectors to transmit preceding context upon trigger firing.
@@ -107,6 +107,6 @@ graph TD
 Every trigger packet emitted by Layer 1 contains a **Dominant-Cause Tag** explaining why the gate was tripped:
 *   `CAUSE_JERK_SURPRISE`: Spike in third derivative of ground-plane displacement.
 *   `CAUSE_PANIC_INDEX`: Rapid rise in directional motion entropy.
-*   `CAUSE_COLLISION_TTC`: Rapid convergence rate of local object bounding boxes.
+*   `CAUSE_COLLISION_TTC`: Low time-to-collision estimate from rapid convergence of local object bounding boxes.
 
 This telemetry flows into Regional and Cloud dashboards, allowing operators to audit false alarms and analyze the exact physical triggers initiating escalations.

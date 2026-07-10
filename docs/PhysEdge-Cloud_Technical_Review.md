@@ -1,4 +1,4 @@
-**Technical Review, Novelty & Patentability Analysis**
+﻿**Technical Review, Novelty & Patentability Analysis**
 
 PhysEdge-Cloud: A Physics-Informed Edge-to-Cloud Anomaly-Detection Pipeline
 
@@ -319,7 +319,7 @@ Reviewing the revised proposal as a hostile-but-fair IoT-J/PR referee, a patent 
 
 - Optical flow on an ESP32-S3 at useful frame rates is an extraordinary claim. Dense flow is expensive; you likely get sparse/block flow at low resolution, which degrades jerk/entropy fidelity. You must measure this honestly — fps, accuracy loss vs the flow quality — or reviewers will assume you can’t.
 
-- Jerk from low-res, compression-noisy, third-difference estimates is numerically fragile (differentiation amplifies noise threefold). Show the noise floor and your smoothing, or the headline feature is not credible.
+- Jerk from low-res, compression-noisy, third-difference estimates is numerically fragile (differentiation amplifies noise by a factor of ~1/Delta_t^3, which at 25 FPS is approximately 15,625x). Show the noise floor and your smoothing, or the headline feature is not credible.
 
 - “Zero-PII” is overclaimed. Skeletons and gait are re-identifiable; trajectories leak location habits. State this and quantify re-ID risk, or a privacy reviewer will reject the claim outright.
 
