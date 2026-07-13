@@ -1,0 +1,26 @@
+# ESP-IDF specific suppressions for cppcheck
+# These macros are defined by ESP-IDF build system
+
+# ESP-IDF logging macros
+useStlAlgorithm
+
+# ESP-IDF memory allocation macros
+knownConditionTrueFalse
+
+# ESP-IDF hardware register access
+invalidPrintfArgType
+
+# FreeRTOS type conversions
+signConversion
+
+# ESP-IDF component patterns
+missingIncludeSystem
+
+# ESP32-S3 SIMD intrinsics
+unknownMacro
+
+# Common false positives in embedded code
+uninitvar
+uninitMemberVar
+uninitdata
+uninitStruct

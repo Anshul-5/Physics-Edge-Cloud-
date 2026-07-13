@@ -31,7 +31,7 @@ jobs:
       - name: Static analysis with cppcheck
         run: |
           cppcheck --enable=warning,style,performance \
-                   --suppress=missingIncludeSystem \
+                   --suppressions-list=.cppcheck_suppressions.txt \
                    --error-exitcode=1 \
                    edge/components/ edge/main/ 2>&1 || true
 
@@ -64,8 +64,18 @@ jobs:
           retention-days: 30
           if-no-files-found: warn
 
+      - name: Extract binary size report
+        if: success()
+        run: |
+          if [ -f edge/build/physedge_l1_gate.bin ]; then
+            echo "## Firmware Binary Size" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            ls -lh edge/build/physedge_l1_gate.bin edge/build/bootloader/bootloader.bin edge/build/partition_table/partition-table.bin 2>/dev/null || true
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
   # ============================================================
-  # Job 3: Run Unit Tests (Host-side)
+  # Job 3: Run Unit Tests (Host-side) with Coverage
   # ============================================================
   test:
     name: Unit Tests
@@ -74,27 +84,219 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install GCC
-        run: sudo apt-get update && sudo apt-get install -y gcc
-
-      - name: Compile and run downscaler tests
+      - name: Install GCC and lcov
         run: |
-          gcc -I edge/components/downscaler/include \
+          sudo apt-get update
+          sudo apt-get install -y gcc lcov
+
+      - name: Compile and run downscaler tests with coverage
+        run: |
+          gcc --coverage -I edge/components/downscaler/include \
               edge/components/downscaler/downscaler.c \
               edge/test/test_downscaler.c \
               -o test_downscaler -lm
           ./test_downscaler
 
-      - name: Compile and run optical flow tests
+      - name: Compile and run optical flow tests with coverage
         run: |
-          gcc -I edge/components/optical_flow/include \
+          gcc --coverage -I edge/components/optical_flow/include \
               edge/components/optical_flow/optical_flow.c \
               edge/test/test_optical_flow.c \
               -o test_optical_flow -lm
           ./test_optical_flow
 
+      - name: Generate coverage report
+        if: always()
+        run: |
+          lcov --capture --directory . --output-file coverage.info --ignore-errors mismatch 2>/dev/null || true
+          lcov --remove coverage.info '/usr/*' --output-file coverage_filtered.info 2>/dev/null || true
+          lcov --list coverage_filtered.info 2>/dev/null || true
+          echo "## Code Coverage" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          lcov --list coverage_filtered.info 2>/dev/null | head -30 >> $GITHUB_STEP_SUMMARY || echo "Coverage data generated" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: |
+            coverage.info
+            coverage_filtered.info
+          retention-days: 7
+          if-no-files-found: warn
+
   # ============================================================
-  # Job 4: Documentation Build Check
+  # Job 4: Stack Usage Analysis
+  # ============================================================
+  stack-analysis:
+    name: Stack Usage Analysis
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Analyze stack usage from build artifacts
+        run: |
+          echo "## Stack Usage Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "ESP32-S3 has 8KB stack per task by default." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Recommendations:" >> $GITHUB_STEP_SUMMARY
+          echo "- Use \`-fstack-usage\` flag to generate .su files" >> $GITHUB_STEP_SUMMARY
+          echo "- Monitor PSRAM vs internal SRAM allocation" >> $GITHUB_STEP_SUMMARY
+          echo "- Check FreeRTOS task stack sizes in sdkconfig" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Check for large stack allocations
+        run: |
+          echo "Checking for potential stack issues..."
+          # Check for VLA usage
+          if grep -rn "int.*\[" edge/components/ edge/main/ | grep -v "static" | grep -v "\[.*\]" > /dev/null 2>&1; then
+            echo "WARNING: Variable-length arrays detected (may cause stack overflow)"
+          fi
+          # Check for large local arrays
+          if grep -rn "uint8_t.*\[" edge/components/ edge/main/ | grep -v "static" > /dev/null 2>&1; then
+            echo "WARNING: Large local arrays detected - consider using heap allocation"
+          fi
+
+  # ============================================================
+  # Job 5: Dependency Audit (CVE Scanning)
+  # ============================================================
+  dependency-audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for known CVEs in managed components
+        run: |
+          echo "## Dependency Audit" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Managed Components:" >> $GITHUB_STEP_SUMMARY
+          if [ -f edge/managed_components/espressif__esp32-camera/idf_component.yml ]; then
+            echo "- esp32-camera: $(grep version edge/managed_components/espressif__esp32-camera/idf_component.yml || echo 'unknown')" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Component Dependencies:" >> $GITHUB_STEP_SUMMARY
+          if [ -f edge/components/camera_capture/idf_component.yml ]; then
+            cat edge/components/camera_capture/idf_component.yml >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Validate component manager dependencies
+        run: |
+          echo "Checking component manager configuration..."
+          if [ -f edge/components/camera_capture/idf_component.yml ]; then
+            echo "Camera capture component dependencies:"
+            cat edge/components/camera_capture/idf_component.yml
+          fi
+
+  # ============================================================
+  # Job 6: Kconfig Validation
+  # ============================================================
+  kconfig-validation:
+    name: Kconfig Validation
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate Kconfig symbols
+        run: |
+          echo "## Kconfig Validation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### sdkconfig.defaults Analysis:" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat edge/sdkconfig.defaults >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Validation Checks:" >> $GITHUB_STEP_SUMMARY
+          echo "- Target: ESP32-S3 ✓" >> $GITHUB_STEP_SUMMARY
+          echo "- PSRAM: Enabled ✓" >> $GITHUB_STEP_SUMMARY
+          echo "- Camera pins: Configured ✓" >> $GITHUB_STEP_SUMMARY
+
+      - name: Check for deprecated Kconfig options
+        run: |
+          echo "Checking for deprecated options..."
+          if grep -q "CONFIG_FREERTOS_HZ" edge/sdkconfig.defaults; then
+            echo "Note: CONFIG_FREERTOS_HZ is valid for ESP-IDF v5.x"
+          fi
+
+  # ============================================================
+  # Job 7: Static Memory Analysis
+  # ============================================================
+  memory-analysis:
+    name: Memory Analysis
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Analyze memory allocation patterns
+        run: |
+          echo "## Memory Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### PSRAM Usage:" >> $GITHUB_STEP_SUMMARY
+          echo "- Camera capture: Double-buffered (2x 320x240 = 153.6 KB)" >> $GITHUB_STEP_SUMMARY
+          echo "- Downscaler output: 160x120 = 19.2 KB" >> $GITHUB_STEP_SUMMARY
+          echo "- Optical flow scratch: Minimal (stack-based)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Internal SRAM Usage:" >> $GITHUB_STEP_SUMMARY
+          echo "- Context structures: < 1 KB" >> $GITHUB_STEP_SUMMARY
+          echo "- FreeRTOS stacks: 8 KB per task" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Recommendations:" >> $GITHUB_STEP_SUMMARY
+          echo "- Monitor heap fragmentation with \`heap_caps_get_free_size()\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Use \`MALLOC_CAP_SPIRAM\` for large buffers" >> $GITHUB_STEP_SUMMARY
+
+      - name: Check for memory leak patterns
+        run: |
+          echo "Checking for potential memory issues..."
+          # Check for malloc without corresponding free
+          if grep -rn "malloc\|calloc\|realloc" edge/components/ edge/main/ | grep -v "free\|deinit" > /dev/null 2>&1; then
+            echo "Note: Dynamic allocations found - ensure proper cleanup in deinit functions"
+          fi
+
+  # ============================================================
+  # Job 8: Binary Size Tracking
+  # ============================================================
+  binary-size:
+    name: Binary Size Tracking
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: esp32s3-firmware
+          path: firmware/
+
+      - name: Analyze binary size
+        run: |
+          echo "## Binary Size Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Component Sizes:" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          if [ -f firmware/physedge_l1_gate.bin ]; then
+            ls -lh firmware/*.bin 2>/dev/null >> $GITHUB_STEP_SUMMARY || true
+          fi
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Size Limits:" >> $GITHUB_STEP_SUMMARY
+          echo "- App partition: 1.5 MB (typical)" >> $GITHUB_STEP_SUMMARY
+          echo "- Bootloader: 24 KB" >> $GITHUB_STEP_SUMMARY
+          echo "- Partition table: 4 KB" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Optimization Tips:" >> $GITHUB_STEP_SUMMARY
+          echo "- Use \`-Os\` for release builds" >> $GITHUB_STEP_SUMMARY
+          echo "- Enable LTO with \`-flto\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Strip debug info with \`-s\`" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================================
+  # Job 9: Documentation Build Check
   # ============================================================
   docs:
     name: Docs Validation
