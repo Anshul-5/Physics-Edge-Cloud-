@@ -1,9 +1,11 @@
-# Auto-update CHANGELOG.md when a PR is merged to main
-# Extracts PR title, number, author, and labels to categorize the entry
+# Auto-update CHANGELOG.md on PR merge or push to main
+# Extracts commit/PR info to categorize changelog entries
 
 name: Update Changelog
 
 on:
+  push:
+    branches: [main]
   pull_request:
     types: [closed]
     branches: [main]
@@ -16,7 +18,10 @@ jobs:
   update-changelog:
     name: Update Changelog
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true
+    # Run on PR merge OR direct push
+    if: >
+      (github.event_name == 'push') ||
+      (github.event.pull_request.merged == true)
     steps:
       - uses: actions/checkout@v4
         with:
@@ -27,19 +32,32 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Extract PR info and update changelog
+      - name: Extract info and update changelog
         env:
+          EVENT_NAME: ${{ github.event_name }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          COMMIT_AUTHOR: ${{ github.event.head_commit.author.name }}
+          COMMIT_SHA: ${{ github.sha }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_TITLE: ${{ github.event.pull_request.title }}
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
-          PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ', ') }}
-          MERGE_DATE: ${{ github.event.pull_request.merged_at }}
         run: |
-          # Parse date
-          DATE=$(echo "$MERGE_DATE" | cut -d'T' -f1)
+          # Determine title and author based on event type
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            TITLE="$PR_TITLE"
+            AUTHOR="$PR_AUTHOR"
+            NUM="$PR_NUMBER"
+            LINK="https://github.com/${{ github.repository }}/pull/$NUM"
+          else
+            # Direct push: extract title from commit message
+            TITLE=$(echo "$COMMIT_MSG" | head -n1)
+            AUTHOR="$COMMIT_AUTHOR"
+            NUM=$(echo "$COMMIT_SHA" | cut -c1-7)
+            LINK="https://github.com/${{ github.repository }}/commit/$COMMIT_SHA"
+          fi
 
           # Determine category from title prefix
-          TITLE_LOWER=$(echo "$PR_TITLE" | tr '[:upper:]' '[:lower:]')
+          TITLE_LOWER=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]')
           if [[ "$TITLE_LOWER" == feat:* ]] || [[ "$TITLE_LOWER" == feature:* ]]; then
             CATEGORY="Added"
           elif [[ "$TITLE_LOWER" == fix:* ]] || [[ "$TITLE_LOWER" == bugfix:* ]]; then
@@ -59,10 +77,10 @@ jobs:
           fi
 
           # Clean title: remove conventional commit prefix
-          CLEAN_TITLE=$(echo "$PR_TITLE" | sed -E 's/^(feat|fix|docs|refactor|perf|test|ci|chore|build|style|revert)(\([^)]*\))?!?:[[:space:]]*//')
+          CLEAN_TITLE=$(echo "$TITLE" | sed -E 's/^(feat|fix|docs|refactor|perf|test|ci|chore|build|style|revert)(\([^)]*\))?!?:[[:space:]]*//')
 
           # Build the changelog entry
-          ENTRY="- $CLEAN_TITLE ([#$PR_NUMBER](https://github.com/${{ github.repository }}/pull/$PR_NUMBER)) @$PR_AUTHOR"
+          ENTRY="- $CLEAN_TITLE ([$NUM]($LINK)) @$AUTHOR"
 
           # Check if [Unreleased] section exists, if not create it
           if ! grep -q "## \[Unreleased\]" CHANGELOG.md; then
@@ -72,23 +90,13 @@ jobs:
           fi
 
           # Find the category under [Unreleased] and insert
-          # If category doesn't exist under Unreleased, create it
           if grep -q "^### $CATEGORY" CHANGELOG.md; then
             # Category exists - insert after the header line
-            awk -v cat="$CATEGORY" -v entry="$ENTRY" '
-              /^### / && $0 ~ cat { found=1; print; next }
-              found && /^### / { found=0 }
-              found && /^-/ { print; found=0; next }
-              { print }
-            ' CHANGELOG.md > CHANGELOG.md.tmp
-            # Actually, simpler approach: just append after the category header
             sed -i "/^### $CATEGORY$/a\\$ENTRY" CHANGELOG.md
           else
             # Category doesn't exist under Unreleased - add it
-            # Find the line number of "## [Unreleased]"
             UNRELEASED_LINE=$(grep -n "^## \[Unreleased\]" CHANGELOG.md | head -1 | cut -d: -f1)
             if [ -n "$UNRELEASED_LINE" ]; then
-              # Insert new category after [Unreleased] header
               sed -i "${UNRELEASED_LINE}a\\
 \\
 ### $CATEGORY\\
@@ -96,7 +104,7 @@ $ENTRY" CHANGELOG.md
             fi
           fi
 
-          # Commit
+          # Commit if there are changes
           git add CHANGELOG.md
-          git commit -m "docs: update changelog for PR #$PR_NUMBER" || echo "No changes to commit"
+          git diff --cached --quiet || git commit -m "docs: auto-update changelog"
           git push
