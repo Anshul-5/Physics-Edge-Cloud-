@@ -9,7 +9,29 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          echo "Changelog workflow running"
-          echo "Commit: ${{ github.sha }}"
-          echo "Message: ${{ github.event.head_commit.message }}"
+      
+      - name: Setup git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Add entry
+        run: |
+          MSG=$(git log -1 --pretty=%B)
+          AUTHOR=$(git log -1 --pretty=%an)
+          SHA=$(git rev-parse --short HEAD)
+          REPO=${{ github.repository }}
+          
+          echo "Processing: $MSG"
+          
+          if echo "$MSG" | grep -qi "^feat:"; then CAT="Added"
+          elif echo "$MSG" | grep -qi "^fix:"; then CAT="Fixed"
+          elif echo "$MSG" | grep -qi "^docs:"; then CAT="Documentation"
+          elif echo "$MSG" | grep -qi "^ci:"; then CAT="Infrastructure"
+          else CAT="Changed"
+          fi
+          
+          echo "Category: $CAT"
+          echo "- $MSG ([$SHA](https://github.com/$REPO/commit/$SHA)) @$AUTHOR" >> /tmp/entry.txt
+          
+          cat /tmp/entry.txt
