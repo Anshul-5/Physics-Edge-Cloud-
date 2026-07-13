@@ -1,0 +1,102 @@
+# Auto-update CHANGELOG.md when a PR is merged to main
+# Extracts PR title, number, author, and labels to categorize the entry
+
+name: Update Changelog
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  update-changelog:
+    name: Update Changelog
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Extract PR info and update changelog
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ', ') }}
+          MERGE_DATE: ${{ github.event.pull_request.merged_at }}
+        run: |
+          # Parse date
+          DATE=$(echo "$MERGE_DATE" | cut -d'T' -f1)
+
+          # Determine category from title prefix
+          TITLE_LOWER=$(echo "$PR_TITLE" | tr '[:upper:]' '[:lower:]')
+          if [[ "$TITLE_LOWER" == feat:* ]] || [[ "$TITLE_LOWER" == feature:* ]]; then
+            CATEGORY="Added"
+          elif [[ "$TITLE_LOWER" == fix:* ]] || [[ "$TITLE_LOWER" == bugfix:* ]]; then
+            CATEGORY="Fixed"
+          elif [[ "$TITLE_LOWER" == refactor:* ]]; then
+            CATEGORY="Changed"
+          elif [[ "$TITLE_LOWER" == docs:* ]] || [[ "$TITLE_LOWER" == documentation:* ]]; then
+            CATEGORY="Documentation"
+          elif [[ "$TITLE_LOWER" == perf:* ]] || [[ "$TITLE_LOWER" == performance:* ]]; then
+            CATEGORY="Performance"
+          elif [[ "$TITLE_LOWER" == test:* ]] || [[ "$TITLE_LOWER" == tests:* ]]; then
+            CATEGORY="Testing"
+          elif [[ "$TITLE_LOWER" == ci:* ]] || [[ "$TITLE_LOWER" == chore:* ]]; then
+            CATEGORY="Infrastructure"
+          else
+            CATEGORY="Changed"
+          fi
+
+          # Clean title: remove conventional commit prefix
+          CLEAN_TITLE=$(echo "$PR_TITLE" | sed -E 's/^(feat|fix|docs|refactor|perf|test|ci|chore|build|style|revert)(\([^)]*\))?!?:[[:space:]]*//')
+
+          # Build the changelog entry
+          ENTRY="- $CLEAN_TITLE ([#$PR_NUMBER](https://github.com/${{ github.repository }}/pull/$PR_NUMBER)) @$PR_AUTHOR"
+
+          # Check if [Unreleased] section exists, if not create it
+          if ! grep -q "## \[Unreleased\]" CHANGELOG.md; then
+            echo -e "# Changelog\n\nAll notable changes to PhysEdge-Cloud will be documented in this file.\n\nFormat based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).\n\n---\n\n## [Unreleased]\n\n### Added\n- Initial unreleased entries\n\n---" > CHANGELOG.md.tmp
+            cat CHANGELOG.md >> CHANGELOG.md.tmp
+            mv CHANGELOG.md.tmp CHANGELOG.md
+          fi
+
+          # Find the category under [Unreleased] and insert
+          # If category doesn't exist under Unreleased, create it
+          if grep -q "^### $CATEGORY" CHANGELOG.md; then
+            # Category exists - insert after the header line
+            awk -v cat="$CATEGORY" -v entry="$ENTRY" '
+              /^### / && $0 ~ cat { found=1; print; next }
+              found && /^### / { found=0 }
+              found && /^-/ { print; found=0; next }
+              { print }
+            ' CHANGELOG.md > CHANGELOG.md.tmp
+            # Actually, simpler approach: just append after the category header
+            sed -i "/^### $CATEGORY$/a\\$ENTRY" CHANGELOG.md
+          else
+            # Category doesn't exist under Unreleased - add it
+            # Find the line number of "## [Unreleased]"
+            UNRELEASED_LINE=$(grep -n "^## \[Unreleased\]" CHANGELOG.md | head -1 | cut -d: -f1)
+            if [ -n "$UNRELEASED_LINE" ]; then
+              # Insert new category after [Unreleased] header
+              sed -i "${UNRELEASED_LINE}a\\
+\\
+### $CATEGORY\\
+$ENTRY" CHANGELOG.md
+            fi
+          fi
+
+          # Commit
+          git add CHANGELOG.md
+          git commit -m "docs: update changelog for PR #$PR_NUMBER" || echo "No changes to commit"
+          git push
