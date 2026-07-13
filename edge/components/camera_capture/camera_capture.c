@@ -14,6 +14,7 @@
 #include "freertos/semphr.h"
 #include "esp_log.h"
 #include "esp_camera.h"
+#include "esp_timer.h"
 
 static const char *TAG = "cam_capture";
 
@@ -28,24 +29,28 @@ struct camera_capture_ctx {
  * @brief Configure camera sensor for QVGA grayscale
  */
 static bool configure_sensor(void) {
+    /*
+     * Pin assignments for common ESP32-S3 camera boards (e.g., ESP-S3-CAM).
+     * Adjust these for your specific hardware.
+     */
     camera_config_t config = {
-        .pin_pwdn     = CONFIG_CAMERA_PIN_PWDN,
-        .pin_reset    = CONFIG_CAMERA_PIN_RESET,
-        .pin_xclk     = CONFIG_CAMERA_PIN_XCLK,
-        .pin_sccb_sda = CONFIG_CAMERA_PIN_SIOD,
-        .pin_sccb_scl = CONFIG_CAMERA_PIN_SIOC,
-        .pin_d7       = CONFIG_CAMERA_PIN_D7,
-        .pin_d6       = CONFIG_CAMERA_PIN_D6,
-        .pin_d5       = CONFIG_CAMERA_PIN_D5,
-        .pin_d4       = CONFIG_CAMERA_PIN_D4,
-        .pin_d3       = CONFIG_CAMERA_PIN_D3,
-        .pin_d2       = CONFIG_CAMERA_PIN_D2,
-        .pin_d1       = CONFIG_CAMERA_PIN_D1,
-        .pin_d0       = CONFIG_CAMERA_PIN_D0,
-        .pin_vsync    = CONFIG_CAMERA_PIN_VSYNC,
-        .pin_href     = CONFIG_CAMERA_PIN_HREF,
-        .pin_pclk     = CONFIG_CAMERA_PIN_PCLK,
-        .xclk_freq_hz = CONFIG_CAMERA_XCLK_FREQ,
+        .pin_pwdn     = -1,   /* GPIO_NUM_NC */
+        .pin_reset    = -1,   /* GPIO_NUM_NC */
+        .pin_xclk     = 15,
+        .pin_sccb_sda = 4,
+        .pin_sccb_scl = 5,
+        .pin_d7       = 16,
+        .pin_d6       = 17,
+        .pin_d5       = 18,
+        .pin_d4       = 12,
+        .pin_d3       = 10,
+        .pin_d2       = 8,
+        .pin_d1       = 14,
+        .pin_d0       = 13,
+        .pin_vsync    = 6,
+        .pin_href     = 7,
+        .pin_pclk     = 11,
+        .xclk_freq_hz = 20000000,
         .ledc_timer   = LEDC_TIMER_0,
         .ledc_channel = LEDC_CHANNEL_0,
         .pixel_format = CAPTUREPixelFormat,
