@@ -13,47 +13,47 @@
 # ============================================================
 # Default owners for everything
 # ============================================================
-* @Anshul-5
+* @Anshul-5 @purvanshjoshi
 
 # ============================================================
 # CI/CD & DevOps
 # ============================================================
-.github/ @Anshul-5
+.github/ @Anshul-5 @purvanshjoshi
 
 # ============================================================
 # Documentation
 # ============================================================
-/docs/ @Anshul-5
-*.md @Anshul-5
+/docs/ @Anshul-5 @purvanshjoshi
+*.md @Anshul-5 @purvanshjoshi
 
 # ============================================================
 # ESP32-S3 Firmware (L1 Edge Gate)
 # ============================================================
 
 # Camera Capture Driver
-/edge/components/camera_capture/ @Anshul-5
-/edge/components/camera_capture/idf_component.yml @Anshul-5
+/edge/components/camera_capture/ @Anshul-5 @purvanshjoshi
+/edge/components/camera_capture/idf_component.yml @Anshul-5 @purvanshjoshi
 
 # Downscaler Component
-/edge/components/downscaler/ @Anshul-5
+/edge/components/downscaler/ @Anshul-5 @purvanshjoshi
 
 # Optical Flow Component
-/edge/components/optical_flow/ @Anshul-5
+/edge/components/optical_flow/ @Anshul-5 @purvanshjoshi
 
 # Main Application
-/edge/main/ @Anshul-5
+/edge/main/ @Anshul-5 @purvanshjoshi
 
 # Build Configuration
-/edge/CMakeLists.txt @Anshul-5
-/edge/sdkconfig.defaults @Anshul-5
+/edge/CMakeLists.txt @Anshul-5 @purvanshjoshi
+/edge/sdkconfig.defaults @Anshul-5 @purvanshjoshi
 
 # ============================================================
 # Unit Tests
 # ============================================================
-/edge/test/ @Anshul-5
+/edge/test/ @Anshul-5 @purvanshjoshi
 
 # ============================================================
 # Security & Compliance
 # ============================================================
-SECURITY.md @Anshul-5
-LICENSE @Anshul-5
+SECURITY.md @Anshul-5 @purvanshjoshi
+LICENSE @Anshul-5 @purvanshjoshi
