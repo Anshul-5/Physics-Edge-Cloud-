@@ -1,0 +1,59 @@
+# PhysEdge-Cloud Code Owners
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# Each line is a file pattern followed by one or more owners.
+# Order matters - later patterns take precedence over earlier ones.
+#
+# Examples:
+#   * @global-owner                        # Default fallback
+#   /docs/ @docs-team                      # Docs team owns /docs/
+#   *.js @frontend-team                    # JS files owned by frontend team
+#   /edge/components/camera/ @hardware     # Camera component owners
+
+# ============================================================
+# Default owners for everything
+# ============================================================
+* @Anshul-5
+
+# ============================================================
+# CI/CD & DevOps
+# ============================================================
+.github/ @Anshul-5
+
+# ============================================================
+# Documentation
+# ============================================================
+/docs/ @Anshul-5
+*.md @Anshul-5
+
+# ============================================================
+# ESP32-S3 Firmware (L1 Edge Gate)
+# ============================================================
+
+# Camera Capture Driver
+/edge/components/camera_capture/ @Anshul-5
+/edge/components/camera_capture/idf_component.yml @Anshul-5
+
+# Downscaler Component
+/edge/components/downscaler/ @Anshul-5
+
+# Optical Flow Component
+/edge/components/optical_flow/ @Anshul-5
+
+# Main Application
+/edge/main/ @Anshul-5
+
+# Build Configuration
+/edge/CMakeLists.txt @Anshul-5
+/edge/sdkconfig.defaults @Anshul-5
+
+# ============================================================
+# Unit Tests
+# ============================================================
+/edge/test/ @Anshul-5
+
+# ============================================================
+# Security & Compliance
+# ============================================================
+SECURITY.md @Anshul-5
+LICENSE @Anshul-5
