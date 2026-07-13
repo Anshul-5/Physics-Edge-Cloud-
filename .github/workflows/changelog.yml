@@ -16,15 +16,11 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Update changelog
-        env:
-          MSG: ${{ github.event.head_commit.message }}
-          AUTHOR: ${{ github.event.head_commit.author.name }}
-          SHA: ${{ github.sha }}
-        shell: bash
         run: |
-          TITLE=$(echo "$MSG" | head -n1)
-          SHORT=$(echo "$SHA" | cut -c1-7)
-          URL="https://github.com/${{ github.repository }}/commit/$SHA"
+          TITLE=$(echo "${{ github.event.head_commit.message }}" | head -n1)
+          AUTHOR="${{ github.event.head_commit.author.name }}"
+          SHORT=$(echo "${{ github.sha }}" | cut -c1-7)
+          URL="https://github.com/${{ github.repository }}/commit/${{ github.sha }}"
 
           if echo "$TITLE" | grep -qi "^feat:"; then CAT="Added"
           elif echo "$TITLE" | grep -qi "^fix:"; then CAT="Fixed"
