@@ -45,21 +45,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup ESP-IDF v5.1
+      - name: Setup and Build ESP-IDF
         uses: espressif/esp-idf-ci-action@v1
         with:
           esp_idf_version: v5.1.4
           target: esp32s3
           path: 'edge'
 
-      - name: Build firmware
-        run: |
-          cd edge
-          idf.py set-target esp32s3
-          idf.py build
-
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: esp32s3-firmware
           path: |
@@ -67,6 +62,7 @@ jobs:
             edge/build/bootloader/bootloader.bin
             edge/build/partition_table/partition-table.bin
           retention-days: 30
+          if-no-files-found: warn
 
   # ============================================================
   # Job 3: Run Unit Tests (Host-side)
