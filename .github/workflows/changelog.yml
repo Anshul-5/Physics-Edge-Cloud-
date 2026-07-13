@@ -16,43 +16,52 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
       
       - name: Update changelog
-        run: |
-          MSG=$(git log -1 --pretty=%B)
-          AUTHOR=$(git log -1 --pretty=%an)
-          SHA=$(git rev-parse --short HEAD)
-          REPO=${{ github.repository }}
-          URL="https://github.com/$REPO/commit/$SHA"
-          
-          if echo "$MSG" | grep -qi "^feat:"; then CAT="Added"
-          elif echo "$MSG" | grep -qi "^fix:"; then CAT="Fixed"
-          elif echo "$MSG" | grep -qi "^docs:"; then CAT="Documentation"
-          elif echo "$MSG" | grep -qi "^ci:"; then CAT="Infrastructure"
-          else CAT="Changed"
-          fi
-          
-          ENTRY="- $MSG ([$SHA]($URL)) @$AUTHOR"
-          echo "Adding: $ENTRY to $CAT"
-          
-          if grep -q "^### $CAT" CHANGELOG.md; then
-            sed -i "/^### $CAT$/a $ENTRY" CHANGELOG.md
-          else
-            N=$(grep -n "Unreleased" CHANGELOG.md | head -1 | cut -d: -f1)
-            if [ -n "$N" ]; then
-              sed -i "${N}a\\
-\\
-### $CAT\\
-$ENTRY" CHANGELOG.md
-            fi
-          fi
-          
-          echo "--- Updated CHANGELOG.md ---"
-          head -30 CHANGELOG.md
-          echo "---"
-          
-          git add CHANGELOG.md
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "docs: update changelog [skip ci]"
-            git push
-          fi
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const { execSync } = require('child_process');
+            
+            const msg = execSync('git log -1 --pretty=%B').toString().trim();
+            const author = execSync('git log -1 --pretty=%an').toString().trim();
+            const sha = context.sha.substring(0, 7);
+            const url = `https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${context.sha}`;
+            
+            let cat = 'Changed';
+            if (/^feat:/i.test(msg)) cat = 'Added';
+            else if (/^fix:/i.test(msg)) cat = 'Fixed';
+            else if (/^docs:/i.test(msg)) cat = 'Documentation';
+            else if (/^ci:|^chore:/i.test(msg)) cat = 'Infrastructure';
+            
+            const entry = `- ${msg} ([${sha}](${url})) @${author}`;
+            console.log(`Adding: ${entry} to ${cat}`);
+            
+            let content = fs.readFileSync('CHANGELOG.md', 'utf8');
+            const header = `### ${cat}`;
+            
+            if (content.includes(header)) {
+              const lines = content.split('\n');
+              const idx = lines.findIndex(l => l.trim() === header);
+              if (idx >= 0) {
+                lines.splice(idx + 1, 0, entry);
+                content = lines.join('\n');
+              }
+            } else {
+              const unreleasedIdx = content.indexOf('## [Unreleased]');
+              if (unreleasedIdx >= 0) {
+                const insertAt = content.indexOf('\n', unreleasedIdx) + 1;
+                content = content.slice(0, insertAt) + `\n\n${header}\n${entry}` + content.slice(insertAt);
+              }
+            }
+            
+            fs.writeFileSync('CHANGELOG.md', content);
+            console.log('Updated CHANGELOG.md');
+            
+            execSync('git add CHANGELOG.md');
+            try {
+              execSync('git diff --cached --quiet', { stdio: 'pipe' });
+              console.log('No changes');
+            } catch {
+              execSync('git commit -m "docs: update changelog [skip ci]"');
+              execSync('git push');
+            }
