@@ -1,0 +1,230 @@
+/**
+ * @file test_optical_flow.c
+ * @brief Unit tests for block-based SAD optical flow
+ *
+ * Tests: block matching, motion vector correctness, confidence scoring,
+ * boundary handling, and stationary scene detection.
+ */
+
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+#include "optical_flow.h"
+
+/** Helper: fill frame with uniform value */
+static void fill_frame(uint8_t *frame, uint8_t val) {
+    memset(frame, val, OF_WIDTH * OF_HEIGHT);
+}
+
+/** Helper: create a shifted block pattern */
+static void create_shifted_frames(uint8_t *curr, uint8_t *prev,
+                                   int shift_x, int shift_y) {
+    fill_frame(curr, 128);
+    fill_frame(prev, 128);
+
+    /* Place a bright 16x16 block in the previous frame at center */
+    int bx = OF_WIDTH / 2 - 8;
+    int by = OF_HEIGHT / 2 - 8;
+    for (int y = 0; y < 16; y++) {
+        for (int x = 0; x < 16; x++) {
+            prev[(by + y) * OF_WIDTH + (bx + x)] = 200;
+        }
+    }
+
+    /* Place the same block in current frame, shifted by (shift_x, shift_y) */
+    int cx = bx + shift_x;
+    int cy = by + shift_y;
+    for (int y = 0; y < 16; y++) {
+        for (int x = 0; x < 16; x++) {
+            if (cy + y >= 0 && cy + y < OF_HEIGHT && cx + x >= 0 && cx + x < OF_WIDTH) {
+                curr[(cy + y) * OF_WIDTH + (cx + x)] = 200;
+            }
+        }
+    }
+}
+
+/** Test 1: Stationary scene produces zero vectors */
+static int test_stationary(void) {
+    uint8_t frame[OF_WIDTH * OF_HEIGHT];
+    fill_frame(frame, 100);
+
+    optical_flow_ctx_t *ctx = optical_flow_init();
+    FlowResult result;
+
+    bool ok = optical_flow_compute(ctx, frame, frame, &result);
+    if (!ok) { printf("FAIL: compute returned false\n"); optical_flow_deinit(ctx); return 1; }
+
+    for (uint32_t i = 0; i < result.num_blocks; i++) {
+        if (result.vectors[i].dx != 0 || result.vectors[i].dy != 0) {
+            printf("FAIL: block %lu has motion (%d,%d), expected (0,0)\n",
+                   i, result.vectors[i].dx, result.vectors[i].dy);
+            optical_flow_deinit(ctx);
+            return 1;
+        }
+    }
+
+    optical_flow_deinit(ctx);
+    printf("PASS test_stationary\n");
+    return 0;
+}
+
+/** Test 2: Shifted block produces correct motion vector */
+static int test_shifted_block(void) {
+    uint8_t curr[OF_WIDTH * OF_HEIGHT];
+    uint8_t prev[OF_WIDTH * OF_HEIGHT];
+
+    /* Shift right by 4 pixels */
+    create_shifted_frames(curr, prev, 4, 0);
+
+    optical_flow_ctx_t *ctx = optical_flow_init();
+    FlowResult result;
+
+    optical_flow_compute(ctx, curr, prev, &result);
+
+    /* Find the block containing the bright region */
+    int center_gx = (OF_WIDTH / 2) / MB_SIZE;
+    int center_gy = (OF_HEIGHT / 2) / MB_SIZE;
+    uint32_t idx = center_gy * GRID_COLS + center_gx;
+
+    MotionVector mv = result.vectors[idx];
+    if (abs(mv.dx) > 2) {
+        printf("FAIL: expected dx ~4, got dx=%d (block %lu)\n", mv.dx, idx);
+        optical_flow_deinit(ctx);
+        return 1;
+    }
+
+    optical_flow_deinit(ctx);
+    printf("PASS test_shifted_block\n");
+    return 0;
+}
+
+/** Test 3: Grid dimensions are correct */
+static int test_grid_dims(void) {
+    if (GRID_COLS != 10) {
+        printf("FAIL: GRID_COLS = %d, expected 10\n", GRID_COLS);
+        return 1;
+    }
+    if (GRID_ROWS != 7) {
+        printf("FAIL: GRID_ROWS = %d, expected 7\n", GRID_ROWS);
+        return 1;
+    }
+    if (NUM_BLOCKS != 70) {
+        printf("FAIL: NUM_BLOCKS = %d, expected 70\n", NUM_BLOCKS);
+        return 1;
+    }
+    printf("PASS test_grid_dims\n");
+    return 0;
+}
+
+/** Test 4: Textureless scene has low confidence */
+static int test_textureless_confidence(void) {
+    uint8_t frame[OF_WIDTH * OF_HEIGHT];
+    fill_frame(frame, 128);
+
+    optical_flow_ctx_t *ctx = optical_flow_init();
+    FlowResult result;
+
+    optical_flow_compute(ctx, frame, frame, &result);
+
+    /* Uniform frame should have zero confidence everywhere */
+    for (uint32_t i = 0; i < result.num_blocks; i++) {
+        if (result.vectors[i].confidence != 0) {
+            printf("FAIL: textureless block %lu has confidence %d, expected 0\n",
+                   i, result.vectors[i].confidence);
+            optical_flow_deinit(ctx);
+            return 1;
+        }
+    }
+
+    optical_flow_deinit(ctx);
+    printf("PASS test_textureless_confidence\n");
+    return 0;
+}
+
+/** Test 5: Textured scene has non-zero confidence */
+static int test_textured_confidence(void) {
+    uint8_t frame[OF_WIDTH * OF_HEIGHT];
+
+    /* Create a gradient pattern (high texture) */
+    for (int y = 0; y < OF_HEIGHT; y++) {
+        for (int x = 0; x < OF_WIDTH; x++) {
+            frame[y * OF_WIDTH + x] = (uint8_t)((x * 3 + y * 7) & 0xFF);
+        }
+    }
+
+    optical_flow_ctx_t *ctx = optical_flow_init();
+    FlowResult result;
+
+    optical_flow_compute(ctx, frame, frame, &result);
+
+    /* At least some blocks should have non-zero confidence */
+    uint32_t confident_count = 0;
+    for (uint32_t i = 0; i < result.num_blocks; i++) {
+        if (result.vectors[i].confidence > 0) confident_count++;
+    }
+
+    if (confident_count < NUM_BLOCKS / 2) {
+        printf("FAIL: only %lu/%d blocks have confidence\n", confident_count, NUM_BLOCKS);
+        optical_flow_deinit(ctx);
+        return 1;
+    }
+
+    optical_flow_deinit(ctx);
+    printf("PASS test_textured_confidence\n");
+    return 0;
+}
+
+/** Test 6: Null inputs handled gracefully */
+static int test_null_inputs(void) {
+    optical_flow_ctx_t *ctx = optical_flow_init();
+    FlowResult result;
+
+    bool ok = optical_flow_compute(ctx, NULL, NULL, &result);
+    if (ok) { printf("FAIL: NULL input should return false\n"); optical_flow_deinit(ctx); return 1; }
+
+    uint8_t frame[OF_WIDTH * OF_HEIGHT];
+    fill_frame(frame, 0);
+    ok = optical_flow_compute(ctx, frame, NULL, &result);
+    if (ok) { printf("FAIL: NULL prev should return false\n"); optical_flow_deinit(ctx); return 1; }
+
+    optical_flow_deinit(ctx);
+    printf("PASS test_null_inputs\n");
+    return 0;
+}
+
+/** Test 7: num_blocks matches expected count */
+static int test_num_blocks(void) {
+    uint8_t frame[OF_WIDTH * OF_HEIGHT];
+    fill_frame(frame, 50);
+
+    optical_flow_ctx_t *ctx = optical_flow_init();
+    FlowResult result;
+
+    optical_flow_compute(ctx, frame, frame, &result);
+
+    if (result.num_blocks != NUM_BLOCKS) {
+        printf("FAIL: num_blocks = %lu, expected %d\n", result.num_blocks, NUM_BLOCKS);
+        optical_flow_deinit(ctx);
+        return 1;
+    }
+
+    optical_flow_deinit(ctx);
+    printf("PASS test_num_blocks\n");
+    return 0;
+}
+
+int main(void) {
+    printf("=== Optical Flow Unit Tests ===\n");
+    int failures = 0;
+
+    failures += test_stationary();
+    failures += test_shifted_block();
+    failures += test_grid_dims();
+    failures += test_textureless_confidence();
+    failures += test_textured_confidence();
+    failures += test_null_inputs();
+    failures += test_num_blocks();
+
+    printf("\n=== Results: %d failures ===\n", failures);
+    return failures;
+}

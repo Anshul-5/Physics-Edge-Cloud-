@@ -14,11 +14,15 @@
 
 #include "camera_capture.h"
 #include "downscaler.h"
+#include "optical_flow.h"
 
 static const char *TAG = "l1_gate";
 
 /** Pre-allocated output buffer (19.2 KB in PSRAM) */
 static uint8_t scaled_buffer[DOWNSCALED_BUF_SIZE];
+
+/** Double buffer for frame history (previous downscaled frame) */
+static uint8_t prev_frame_buffer[DOWNSCALED_BUF_SIZE];
 
 void app_main(void) {
     ESP_LOGI(TAG, "=== PhysEdge-Cloud L1 Edge Gate ===");
@@ -41,9 +45,21 @@ void app_main(void) {
         return;
     }
 
-    ESP_LOGI(TAG, "Pipeline ready: 320x240 -> 160x120 INT8 bilinear");
-    ESP_LOGI(TAG, "Output buffer: %d bytes (%.1f KB)",
-             DOWNSCALED_BUF_SIZE, DOWNSCALED_BUF_SIZE / 1024.0f);
+    /* Initialize optical flow processor */
+    optical_flow_ctx_t *flow = optical_flow_init();
+    if (!flow) {
+        ESP_LOGE(TAG, "Optical flow init failed, halting");
+        downscaler_deinit(scaler);
+        camera_capture_deinit(cam);
+        vTaskDelay(portMAX_DELAY);
+        return;
+    }
+
+    /* Clear previous frame buffer */
+    memset(prev_frame_buffer, 0, DOWNSCALED_BUF_SIZE);
+
+    ESP_LOGI(TAG, "Pipeline ready: 320x240 -> 160x120 -> Optical Flow (%d blocks)",
+             NUM_BLOCKS);
 
     /* Main frame loop */
     GrayscaleFrame raw_frame;
@@ -67,8 +83,23 @@ void app_main(void) {
             .stride = raw_frame.stride,
         };
 
-        /* Downscale */
+        /* Downscale current frame */
         const uint8_t *scaled = downscale_bilinear(scaler, &input);
+
+        /* Compute optical flow: current vs previous frame */
+        FlowResult flow_result;
+        optical_flow_compute(flow, scaled, prev_frame_buffer, &flow_result);
+
+        /* Count motion vectors with significant displacement */
+        uint32_t motion_count = 0;
+        uint32_t confident_motion = 0;
+        for (uint32_t i = 0; i < flow_result.num_blocks; i++) {
+            MotionVector *mv = &flow_result.vectors[i];
+            if (mv->dx != 0 || mv->dy != 0) {
+                motion_count++;
+                if (mv->confidence > 50) confident_motion++;
+            }
+        }
 
         int64_t t1 = esp_timer_get_time();
         uint32_t elapsed_us = (uint32_t)(t1 - t0);
@@ -77,9 +108,13 @@ void app_main(void) {
 
         if (frame_count % 50 == 0) {
             float avg_ms = (total_us / (float)frame_count) / 1000.0f;
-            ESP_LOGI(TAG, "Frame %lu: %lu us (%.2f ms avg) | buf=%p",
-                     frame_count, elapsed_us, avg_ms, (void *)scaled);
+            ESP_LOGI(TAG, "Frame %lu: %lu us (%.2f ms) | motion=%lu/%lu confident=%lu",
+                     frame_count, elapsed_us, avg_ms,
+                     motion_count, flow_result.num_blocks, confident_motion);
         }
+
+        /* Swap: current becomes previous for next iteration */
+        memcpy(prev_frame_buffer, scaled, DOWNSCALED_BUF_SIZE);
 
         /* Release raw frame */
         camera_capture_release(cam, &raw_frame);
