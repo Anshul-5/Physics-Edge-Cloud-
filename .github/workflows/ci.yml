@@ -306,7 +306,7 @@ jobs:
 
       - name: Check all markdown files exist
         run: |
-          for f in README.md CHANGELOG.md \
+          for f in README.md CHANGELOG.md LICENSE SECURITY.md CODE_OF_CONDUCT.md \
                    docs/system_architecture.md \
                    docs/api_specification.md \
                    docs/security_and_privacy.md \
