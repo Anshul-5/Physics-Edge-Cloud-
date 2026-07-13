@@ -8,6 +8,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+
+### Infrastructure
+- ci: use github-script for changelog ([5d5ad23](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/5d5ad23c428698630f864b6bfb24bec8e58d4fb8)) @Purvansh Joshi
 ### Added
 - ESP32-S3 camera capture driver (QVGA grayscale, double-buffered)
 - INT8 bilinear downscaler (320x240 -> 160x120, Q8.8 fixed-point)
