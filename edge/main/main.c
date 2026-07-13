@@ -7,6 +7,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
@@ -108,9 +109,10 @@ void app_main(void) {
 
         if (frame_count % 50 == 0) {
             float avg_ms = (total_us / (float)frame_count) / 1000.0f;
-            ESP_LOGI(TAG, "Frame %lu: %lu us (%.2f ms) | motion=%lu/%lu confident=%lu",
-                     frame_count, elapsed_us, avg_ms,
-                     motion_count, flow_result.num_blocks, confident_motion);
+            ESP_LOGI(TAG, "Frame %u: %u us (%.2f ms) | motion=%u/%u confident=%u",
+                     (unsigned)frame_count, (unsigned)elapsed_us, avg_ms,
+                     (unsigned)motion_count, (unsigned)flow_result.num_blocks,
+                     (unsigned)confident_motion);
         }
 
         /* Swap: current becomes previous for next iteration */
