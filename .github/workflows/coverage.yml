@@ -1,0 +1,48 @@
+name: Code Coverage
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  coverage:
+    name: Coverage Report
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc lcov
+
+      - name: Compile and run tests with coverage
+        run: |
+          gcc --coverage -I edge/components/downscaler/include \
+              edge/components/downscaler/downscaler.c \
+              edge/test/test_downscaler.c \
+              -o test_downscaler -lm
+          ./test_downscaler
+
+          gcc --coverage -I edge/components/optical_flow/include \
+              edge/components/optical_flow/optical_flow.c \
+              edge/test/test_optical_flow.c \
+              -o test_optical_flow -lm
+          ./test_optical_flow
+
+      - name: Generate coverage report
+        run: |
+          lcov --capture --directory . --output-file coverage.info --ignore-errors mismatch 2>/dev/null || true
+          lcov --remove coverage.info '/usr/*' 'edge/test/*' --output-file coverage_filtered.info 2>/dev/null || true
+          lcov --list coverage_filtered.info
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: coverage_filtered.info
+          flags: unittests
+          name: physedge-coverage
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}

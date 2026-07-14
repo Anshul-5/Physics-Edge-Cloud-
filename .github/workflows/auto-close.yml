@@ -1,0 +1,42 @@
+name: Close Resolved Issues
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  issues: write
+
+jobs:
+  close:
+    name: Auto-close on Fix Keyword
+    runs-on: ubuntu-latest
+    if: contains(github.event.comment.body, '#fix') || contains(github.event.comment.body, 'fixes #') || contains(github.event.comment.body, 'closes #')
+    steps:
+      - name: Extract and close issues
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const body = context.payload.comment.body;
+            const regex = /(?:fix|fixes|closes)\s*#(\d+)/gi;
+            let match;
+            const issues = [];
+            
+            while ((match = regex.exec(body)) !== null) {
+              issues.push(parseInt(match[1]));
+            }
+            
+            for (const issueNum of issues) {
+              try {
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNum,
+                  state: 'closed',
+                  state_reason: 'completed'
+                });
+                console.log(`Closed issue #${issueNum}`);
+              } catch (e) {
+                console.log(`Failed to close #${issueNum}: ${e.message}`);
+              }
+            }
