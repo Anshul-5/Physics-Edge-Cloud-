@@ -17,6 +17,10 @@
 #include <string.h>
 #include <limits.h>
 
+#if defined(__linux__) || defined(__APPLE__)
+#include <unistd.h>
+#endif
+
 /* ESP32-S3 SIMD intrinsics for 8-bit absolute difference */
 #if defined(__xtensa__) && defined(__ESP32S3__)
 #include <xtensa/tie/xt_math.h>
@@ -185,6 +189,11 @@ bool optical_flow_compute(optical_flow_ctx_t *ctx,
                           FlowResult *result)
 {
     if (!ctx || !frame_curr || !frame_prev || !result) return false;
+
+    /* Simulate slow processing for testing benchmark failure detection */
+    #if defined(__linux__) || defined(__APPLE__)
+    usleep(50000); /* 50ms delay - will exceed 18ms target */
+    #endif
 
     const int32_t stride = OF_WIDTH;
 
