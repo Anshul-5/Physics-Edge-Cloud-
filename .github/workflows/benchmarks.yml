@@ -73,18 +73,74 @@ jobs:
               -o bench_optical_flow -lm
 
       - name: Run benchmarks
-        run: ./bench_optical_flow | tee benchmark_results.txt
+        id: benchmark
+        run: |
+          ./bench_optical_flow 2>&1 | tee benchmark_results.txt
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
 
-      - name: Comment on PR
-        if: github.event_name == 'pull_request'
+      - name: Comment on PR with results
+        if: always() && github.event_name == 'pull_request'
         uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
-            const results = fs.readFileSync('benchmark_results.txt', 'utf8');
-            await github.rest.issues.createComment({
+            let results = '';
+            let passed = false;
+            
+            try {
+              results = fs.readFileSync('benchmark_results.txt', 'utf8');
+              passed = results.includes('PASS');
+            } catch {
+              results = 'Benchmark failed to run or crashed.';
+              passed = false;
+            }
+            
+            const icon = passed ? '✅' : '❌';
+            const status = passed ? 'PASSED' : 'FAILED';
+            
+            const latency = results.match(/Avg per frame: ([\d.]+) ms/)?.[1] || 'N/A';
+            const fps = results.match(/Throughput: ([\d.]+) FPS/)?.[1] || 'N/A';
+            const blocks = results.match(/Blocks: (\d+)/)?.[1] || 'N/A';
+            
+            const body = `## ${icon} Performance Benchmark Results
+            
+            **Status: ${status}**
+            
+            \`\`\`
+            ${results}
+            \`\`\`
+            
+            | Metric | Value | Target |
+            |--------|-------|--------|
+            | Avg Latency | ${latency} ms | < 18 ms |
+            | Throughput | ${fps} FPS | > 55 FPS |
+            | Blocks | ${blocks} | - |
+            
+            ${passed ? 'All performance targets met.' : '⚠️ Performance targets not met - review required.'}
+            
+            <sub>Benchmark run: ${new Date().toISOString()}</sub>`;
+            
+            // Find existing comment to update
+            const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `## Performance Benchmark Results\n\`\`\`\n${results}\n\`\`\``
             });
+            
+            const existing = comments.find(c => c.body.includes('Performance Benchmark Results'));
+            
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
