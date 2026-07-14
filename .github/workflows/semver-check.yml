@@ -9,16 +9,14 @@ jobs:
     name: Validate Version Bump
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-
       - name: Check version bump in docs
         run: |
           PR_TITLE="${{ github.event.pull_request.title }}"
           PR_BODY="${{ github.event.pull_request.body }}"
           
-          BREAKING=$(echo "$PR_TITLE $PR_BODY" | grep -ciE "breaking|major|BREAKING")
-          FEAT=$(echo "$PR_TITLE $PR_BODY" | grep -ciE "feature|feat|add|implement|new")
-          FIX=$(echo "$PR_TITLE $PR_BODY" | grep -ciE "fix|bug|patch|resolve|correct")
+          BREAKING=$(echo "$PR_TITLE $PR_BODY" | grep -ciE "breaking|major|BREAKING" || true)
+          FEAT=$(echo "$PR_TITLE $PR_BODY" | grep -ciE "feature|feat|add|implement|new" || true)
+          FIX=$(echo "$PR_TITLE $PR_BODY" | grep -ciE "fix|bug|patch|resolve|correct" || true)
           
           echo "Title: $PR_TITLE"
           echo "Breaking: $BREAKING, Feature: $FEAT, Fix: $FIX"

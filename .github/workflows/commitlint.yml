@@ -20,20 +20,9 @@ jobs:
       - name: Install commitlint
         run: npm install --global @commitlint/cli @commitlint/config-conventional
 
-      - name: Validate commits
+      - name: Create commitlint config
         run: |
-          cat > commitlint.config.js << 'EOF'
-          module.exports = {
-            extends: ['@commitlint/config-conventional'],
-            rules: {
-              'type-enum': [2, 'always', [
-                'feat', 'fix', 'docs', 'style', 'refactor', 
-                'perf', 'test', 'build', 'ci', 'chore', 'revert'
-              ]],
-              'subject-max-length': [2, 'always', 72],
-              'body-max-line-length': [1, 'always', 100],
-            }
-          };
-          EOF
+          echo "module.exports = { extends: ['@commitlint/config-conventional'], rules: { 'type-enum': [2, 'always', ['feat', 'fix', 'docs', 'style', 'refactor', 'perf', 'test', 'build', 'ci', 'chore', 'revert']], 'subject-max-length': [2, 'always', 72], 'body-max-line-length': [1, 'always', 100] } };" > commitlint.config.js
 
-          npx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
+      - name: Validate commits
+        run: npx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
