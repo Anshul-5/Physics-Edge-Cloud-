@@ -9,33 +9,28 @@ permissions:
 
 jobs:
   track-size:
-    name: Track Binary Size
+    name: Track Source Size
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
-      - name: Install ESP-IDF
-        uses: espressif/setup-esp-idf@v1
-
-      - name: Build and track size
+      - name: Track source code size
         run: |
-          cd edge
-          idf.py set-target esp32s3
-          idf.py build 2>&1 | tail -20
-          
           echo "Commit: $(git rev-parse --short HEAD)" >> size_history.csv
           echo "Date: $(date -u +'%Y-%m-%d')" >> size_history.csv
           
-          if [ -f "build/phy_edge_cloud.bin" ]; then
-            BIN_SIZE=$(stat -f%z "build/phy_edge_cloud.bin" 2>/dev/null || stat -c%s "build/phy_edge_cloud.bin" 2>/dev/null)
-            echo "Binary Size: ${BIN_SIZE} bytes" >> size_history.csv
-            echo "Binary size: ${BIN_SIZE} bytes"
-          else
-            echo "Binary not found, skipping size tracking"
-          fi
+          C_LINES=$(find edge -name "*.c" -not -path "*/managed_components/*" | xargs wc -l 2>/dev/null | tail -1 | awk '{print $1}')
+          H_LINES=$(find edge -name "*.h" -not -path "*/managed_components/*" | xargs wc -l 2>/dev/null | tail -1 | awk '{print $1}')
+          TOTAL_FILES=$(find edge -name "*.c" -o -name "*.h" | grep -v managed_components | wc -l)
+          
+          echo "C Files Lines: ${C_LINES:-0}" >> size_history.csv
+          echo "Header Files Lines: ${H_LINES:-0}" >> size_history.csv
+          echo "Total Source Files: ${TOTAL_FILES}" >> size_history.csv
           echo "---" >> size_history.csv
+          
+          echo "C lines: ${C_LINES:-0}, H lines: ${H_LINES:-0}, Files: ${TOTAL_FILES}"
 
       - name: Upload size history
         uses: actions/upload-artifact@v7
