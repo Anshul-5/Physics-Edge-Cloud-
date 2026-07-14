@@ -13,6 +13,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - docs: update changelog [skip ci] ([dfc9684](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/dfc9684814dcd97602fe4008a15ba48d03ad3e80)) @github-actions[bot]
 
 ### Changed
+- Merge pull request #66 from Anshul-5/dependabot/github_actions/actions/upload-artifact-7
+
+ci: bump actions/upload-artifact from 4 to 7 ([09b6d25](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/09b6d25ee79f265dc7041f7a8f71e46ea31553ea)) @Purvansh Joshi
 - Merge pull request #65 from Anshul-5/dependabot/github_actions/actions/checkout-7
 
 ci: bump actions/checkout from 4 to 7 ([957ec88](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/957ec888dadbd8a43f3985ca5a8774faa4306d30)) @Purvansh Joshi
