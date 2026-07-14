@@ -25,6 +25,13 @@ ci: bump actions/checkout from 4 to 7 ([957ec88](https://github.com/Anshul-5/Phy
 - fix(ci): run changelog only after CI passes ([15cd87b](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/15cd87be4626383943053200a3694f55b48fc11f)) @Purvansh Joshi
 
 ### Infrastructure
+- ci: add remaining automation and quality checks
+
+- GitHub Pages deployment for documentation
+- Nightly build schedule (2:00 UTC daily)
+- Code coverage reporting with Codecov
+- Auto-close issues on fix/closes keyword
+- Commit lint (validate conventional commits) ([8f02bcb](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/8f02bcbfb2251b19087dc3faf439f3b7c8ee5895)) @Purvansh Joshi
 - ci: add comprehensive automation and quality checks
 
 - GitLeaks secret detection
