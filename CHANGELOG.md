@@ -32,6 +32,22 @@ ci: bump actions/checkout from 4 to 7 ([957ec88](https://github.com/Anshul-5/Phy
 - fix(ci): run changelog only after CI passes ([15cd87b](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/15cd87be4626383943053200a3694f55b48fc11f)) @Purvansh Joshi
 
 ### Infrastructure
+- ci: add SBOM, scorecard, changelog validation, and history tracking
+
+## Summary
+
+Adds 6 new CI/CD workflows:
+
+- **SBOM Generation** - SPDX + CycloneDX software bills of materials
+- **OpenSSF Scorecard** - Security assessment on every push
+- **Changelog Validation** - Ensures CHANGELOG.md updated for feature PRs
+- **Semantic Versioning Check** - Suggests version bump based on PR content
+- **Benchmark History** - Tracks optical flow performance over time
+- **Size History** - Tracks ESP32-S3 binary size over time
+
+## Checks
+
+All 21 CI checks passing. Fixes commitlint subject length limit (72→78) and semver grep exit codes. ([2250bae](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/2250baeeb435c2579fed61d6c807e67512473354)) @Purvansh Joshi
 - ci: add remaining automation and quality checks
 
 - GitHub Pages deployment for documentation
