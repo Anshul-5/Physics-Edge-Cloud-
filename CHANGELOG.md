@@ -25,6 +25,18 @@ ci: bump actions/checkout from 4 to 7 ([957ec88](https://github.com/Anshul-5/Phy
 - fix(ci): run changelog only after CI passes ([15cd87b](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/15cd87be4626383943053200a3694f55b48fc11f)) @Purvansh Joshi
 
 ### Infrastructure
+- ci: add comprehensive automation and quality checks
+
+- GitLeaks secret detection
+- Semantic PR title validation (conventional commits)
+- PR size limiter (warn on large PRs)
+- Auto-labeling PRs by file paths
+- Performance benchmarks (optical flow)
+- Release automation (tag push)
+- Stale issue/PR bot
+- License compliance check
+- Issue templates (bug report, feature request)
+- PR template ([df65b32](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/df65b32bfefe2348d33ef155309ef2ae1e5ad07d)) @Purvansh Joshi
 - ci: add dependabot and codeql configuration ([285af08](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/285af08627eb31e6822708ac69b6141d6ad1ac51)) @Purvansh Joshi
 - ci: use github-script for changelog ([5d5ad23](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/5d5ad23c428698630f864b6bfb24bec8e58d4fb8)) @Purvansh Joshi
 ### Added
