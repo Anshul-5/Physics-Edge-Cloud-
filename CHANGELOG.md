@@ -32,6 +32,7 @@ ci: bump actions/checkout from 4 to 7 ([957ec88](https://github.com/Anshul-5/Phy
 - fix(ci): run changelog only after CI passes ([15cd87b](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/15cd87be4626383943053200a3694f55b48fc11f)) @Purvansh Joshi
 
 ### Infrastructure
+- ci: make pages workflow skip gracefully when Pages not enabled ([2285066](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/2285066c2cd7b8af7c730b2b8ade30f85dad8233)) @Purvansh Joshi
 - ci: fix SBOM SARIF upload and size-history ESP-IDF action ([77f1a1e](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/77f1a1e376a0cad08e8593342398e3729dce8274)) @Purvansh Joshi
 - ci: add SBOM, scorecard, changelog validation, and history tracking
 
