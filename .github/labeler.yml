@@ -1,46 +1,58 @@
-# Default labeler rules for PhysEdge-Cloud
+# Labeler configuration for actions/labeler@v5
+# https://github.com/actions/labeler
 
-edge/:
-  - 'firmware'
+firmware:
+  - changed-files:
+    - any-glob-to-any-file:
+      - edge/**
 
-edge/components/:
-  - 'firmware'
-  - 'component'
+component:
+  - changed-files:
+    - any-glob-to-any-file:
+      - edge/components/**
 
-edge/components/camera_capture/:
-  - 'firmware'
-  - 'camera'
+camera:
+  - changed-files:
+    - any-glob-to-any-file:
+      - edge/components/camera_capture/**
 
-edge/components/downscaler/:
-  - 'firmware'
-  - 'image-processing'
+image-processing:
+  - changed-files:
+    - any-glob-to-any-file:
+      - edge/components/downscaler/**
 
-edge/components/optical_flow/:
-  - 'firmware'
-  - 'optical-flow'
+optical-flow:
+  - changed-files:
+    - any-glob-to-any-file:
+      - edge/components/optical_flow/**
 
-edge/main/:
-  - 'firmware'
-  - 'application'
+application:
+  - changed-files:
+    - any-glob-to-any-file:
+      - edge/main/**
 
-edge/test/:
-  - 'tests'
+tests:
+  - changed-files:
+    - any-glob-to-any-file:
+      - edge/test/**
 
-.github/:
-  - 'ci'
+ci:
+  - changed-files:
+    - any-glob-to-any-file:
+      - .github/**
 
-.github/workflows/:
-  - 'ci'
+documentation:
+  - changed-files:
+    - any-glob-to-any-file:
+      - docs/**
+      - "*.md"
 
-docs/:
-  - 'documentation'
+legal:
+  - changed-files:
+    - any-glob-to-any-file:
+      - LICENSE
 
-"*.md":
-  - 'documentation'
-
-LICENSE:
-  - 'legal'
-  - 'documentation'
-
-CHANGELOG.md:
-  - 'changelog'
+changelog:
+  - changed-files:
+    - any-glob-to-any-file:
+      - CHANGELOG.md
