@@ -1,0 +1,40 @@
+name: License Compliance
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  license-check:
+    name: Check Licenses
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check license headers
+        run: |
+          echo "Checking license headers in source files..."
+          MISSING=0
+          for f in $(find edge/components edge/main -name '*.c' -o -name '*.h'); do
+            if ! head -5 "$f" | grep -q "Apache License\|SPDX-License-Identifier\|Licensed under"; then
+              echo "MISSING LICENSE: $f"
+              MISSING=$((MISSING + 1))
+            fi
+          done
+          if [ $MISSING -gt 0 ]; then
+            echo "WARNING: $MISSING files missing license headers"
+          else
+            echo "All source files have license headers"
+          fi
+
+      - name: Verify LICENSE file
+        run: |
+          if [ -f LICENSE ]; then
+            echo "LICENSE file exists"
+            head -1 LICENSE
+          else
+            echo "ERROR: LICENSE file missing"
+            exit 1
+          fi

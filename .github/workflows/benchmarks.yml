@@ -1,0 +1,86 @@
+name: Benchmarks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  benchmark:
+    name: Performance Benchmarks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install GCC
+        run: sudo apt-get update && sudo apt-get install -y gcc
+
+      - name: Build benchmarks
+        run: |
+          cat > bench_optical_flow.c << 'EOF'
+          #include <stdio.h>
+          #include <stdlib.h>
+          #include <time.h>
+          #include "optical_flow.h"
+
+          int main() {
+              uint8_t frame[OF_WIDTH * OF_HEIGHT];
+              for (int i = 0; i < OF_WIDTH * OF_HEIGHT; i++) frame[i] = rand() % 256;
+
+              optical_flow_ctx_t *ctx = optical_flow_init();
+              FlowResult result;
+
+              struct timespec start, end;
+              int iterations = 100;
+
+              clock_gettime(CLOCK_MONOTONIC, &start);
+              for (int i = 0; i < iterations; i++) {
+                  optical_flow_compute(ctx, frame, frame, &result);
+              }
+              clock_gettime(CLOCK_MONOTONIC, &end);
+
+              double elapsed = (end.tv_sec - start.tv_sec) * 1000.0 +
+                              (end.tv_nsec - start.tv_nsec) / 1000000.0;
+              double avg_ms = elapsed / iterations;
+              double fps = 1000.0 / avg_ms;
+
+              printf("=== Optical Flow Benchmark ===\n");
+              printf("Iterations: %d\n", iterations);
+              printf("Total time: %.2f ms\n", elapsed);
+              printf("Avg per frame: %.3f ms\n", avg_ms);
+              printf("Throughput: %.1f FPS\n", fps);
+              printf("Blocks: %d\n", NUM_BLOCKS);
+
+              if (avg_ms > 18.0) {
+                  printf("FAIL: Exceeded 18ms target (%.3f ms)\n", avg_ms);
+                  return 1;
+              }
+              printf("PASS: Within 18ms target\n");
+
+              optical_flow_deinit(ctx);
+              return 0;
+          }
+          EOF
+
+          gcc -I edge/components/optical_flow/include \
+              edge/components/optical_flow/optical_flow.c \
+              bench_optical_flow.c \
+              -o bench_optical_flow -lm
+
+      - name: Run benchmarks
+        run: ./bench_optical_flow | tee benchmark_results.txt
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const fs = require('fs');
+            const results = fs.readFileSync('benchmark_results.txt', 'utf8');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## Performance Benchmark Results\n\`\`\`\n${results}\n\`\`\``
+            });

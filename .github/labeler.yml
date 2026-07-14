@@ -1,0 +1,46 @@
+# Default labeler rules for PhysEdge-Cloud
+
+edge/:
+  - 'firmware'
+
+edge/components/:
+  - 'firmware'
+  - 'component'
+
+edge/components/camera_capture/:
+  - 'firmware'
+  - 'camera'
+
+edge/components/downscaler/:
+  - 'firmware'
+  - 'image-processing'
+
+edge/components/optical_flow/:
+  - 'firmware'
+  - 'optical-flow'
+
+edge/main/:
+  - 'firmware'
+  - 'application'
+
+edge/test/:
+  - 'tests'
+
+.github/:
+  - 'ci'
+
+.github/workflows/:
+  - 'ci'
+
+docs/:
+  - 'documentation'
+
+*.md:
+  - 'documentation'
+
+LICENSE:
+  - 'legal'
+  - 'documentation'
+
+CHANGELOG.md:
+  - 'changelog'

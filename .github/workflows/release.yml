@@ -1,0 +1,49 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup and Build ESP-IDF
+        uses: espressif/esp-idf-ci-action@v1
+        with:
+          esp_idf_version: v5.1.4
+          target: esp32s3
+          path: 'edge'
+
+      - name: Generate release notes
+        id: notes
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          echo "## What's Changed" > notes.md
+          echo "" >> notes.md
+          git log $(git describe --tags --abbrev=0 HEAD^)..HEAD --pretty=format:"- %s (%h)" --no-merges >> notes.md
+          echo "" >> notes.md
+          echo "" >> notes.md
+          echo "## Firmware" >> notes.md
+          echo "- \`physedge_l1_gate.bin\` - Main application" >> notes.md
+          echo "- \`bootloader.bin\` - Bootloader" >> notes.md
+          echo "- \`partition-table.bin\` - Partition table" >> notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: notes.md
+          files: |
+            edge/build/physedge_l1_gate.bin
+            edge/build/bootloader/bootloader.bin
+            edge/build/partition_table/partition-table.bin
+          generate_release_notes: true
