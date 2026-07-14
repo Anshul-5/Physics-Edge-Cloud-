@@ -15,6 +15,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - docs: update changelog [skip ci] ([dfc9684](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/dfc9684814dcd97602fe4008a15ba48d03ad3e80)) @github-actions[bot]
 
 ### Changed
+- fix(ci): update labeler.yml to v5 format ([4a8ac26](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/4a8ac26d13ff8486dfec78b21fd0034fc748e9f5)) @Purvansh Joshi
 - Merge pull request #67 from Anshul-5/dependabot/github_actions/amannn/action-semantic-pull-request-6
 
 ci: bump amannn/action-semantic-pull-request from 5 to 6 ([463e58b](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/463e58b67896ad03f52bccc3ce8691c20534ba5b)) @Purvansh Joshi
