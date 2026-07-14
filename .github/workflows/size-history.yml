@@ -1,0 +1,45 @@
+name: Size History
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  track-size:
+    name: Track Binary Size
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Install ESP-IDF
+        uses: espressif/setup-esp-idf@v1
+
+      - name: Build and track size
+        run: |
+          cd edge
+          idf.py set-target esp32s3
+          idf.py build 2>&1 | tail -20
+          
+          echo "Commit: $(git rev-parse --short HEAD)" >> size_history.csv
+          echo "Date: $(date -u +'%Y-%m-%d')" >> size_history.csv
+          
+          if [ -f "build/phy_edge_cloud.bin" ]; then
+            BIN_SIZE=$(stat -f%z "build/phy_edge_cloud.bin" 2>/dev/null || stat -c%s "build/phy_edge_cloud.bin" 2>/dev/null)
+            echo "Binary Size: ${BIN_SIZE} bytes" >> size_history.csv
+            echo "Binary size: ${BIN_SIZE} bytes"
+          else
+            echo "Binary not found, skipping size tracking"
+          fi
+          echo "---" >> size_history.csv
+
+      - name: Upload size history
+        uses: actions/upload-artifact@v7
+        with:
+          name: size-history
+          path: size_history.csv
+          retention-days: 365

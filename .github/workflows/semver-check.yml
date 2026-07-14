@@ -1,0 +1,34 @@
+name: Semantic Versioning Check
+
+on:
+  pull_request:
+    types: [opened, edited]
+
+jobs:
+  validate-version:
+    name: Validate Version Bump
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check version bump in docs
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_BODY="${{ github.event.pull_request.body }}"
+          
+          BREAKING=$(echo "$PR_TITLE $PR_BODY" | grep -ciE "breaking|major|BREAKING")
+          FEAT=$(echo "$PR_TITLE $PR_BODY" | grep -ciE "feature|feat|add|implement|new")
+          FIX=$(echo "$PR_TITLE $PR_BODY" | grep -ciE "fix|bug|patch|resolve|correct")
+          
+          echo "Title: $PR_TITLE"
+          echo "Breaking: $BREAKING, Feature: $FEAT, Fix: $FIX"
+          
+          if [ "$BREAKING" -gt 0 ]; then
+            echo "RECOMMENDATION: Bump MAJOR version (breaking change detected)"
+          elif [ "$FEAT" -gt 0 ]; then
+            echo "RECOMMENDATION: Bump MINOR version (new feature detected)"
+          elif [ "$FIX" -gt 0 ]; then
+            echo "RECOMMENDATION: Bump PATCH version (bug fix detected)"
+          else
+            echo "RECOMMENDATION: No version bump detected (docs/chore)"
+          fi
