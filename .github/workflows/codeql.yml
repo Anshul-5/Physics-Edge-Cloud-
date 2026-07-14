@@ -1,7 +1,4 @@
-# CodeQL configuration
-# https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning
-
-name: "CodeQL"
+name: CodeQL
 
 on:
   push:
@@ -9,7 +6,7 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    - cron: "0 6 * * 1"  # Weekly on Monday at 6:00 UTC
+    - cron: "0 6 * * 1"
 
 jobs:
   analyze:
@@ -17,14 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       security-events: write
-      packages: read
-      actions: read
       contents: read
-
-    strategy:
-      fail-fast: false
-      matrix:
-        language: ["c-cpp"]
 
     steps:
       - name: Checkout repository
@@ -33,13 +23,11 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          languages: ${{ matrix.language }}
+          languages: c-cpp
           queries: security-and-quality
-
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+          build-mode: none
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
-          category: "/language:${{ matrix.language }}"
+          category: "/language:c-cpp"
