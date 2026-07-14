@@ -1,0 +1,37 @@
+name: Benchmark History
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [closed]
+
+permissions:
+  contents: write
+
+jobs:
+  track-history:
+    name: Track Benchmark History
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || (github.event.pull_request.merged == true)
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Record benchmark results
+        run: |
+          echo "Recording benchmark data for commit $(git rev-parse --short HEAD)"
+          echo "Commit: $(git rev-parse --short HEAD)" >> benchmark_history.txt
+          echo "Date: $(date -u +'%Y-%m-%d %H:%M UTC')" >> benchmark_history.txt
+          echo "Author: ${{ github.actor }}" >> benchmark_history.txt
+          echo "---" >> benchmark_history.txt
+          cat benchmark_history.txt
+
+      - name: Upload benchmark history
+        uses: actions/upload-artifact@v7
+        with:
+          name: benchmark-history
+          path: benchmark_history.txt
+          retention-days: 365
