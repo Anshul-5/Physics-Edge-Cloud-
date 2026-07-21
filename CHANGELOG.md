@@ -10,6 +10,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
 ### Documentation
+- docs: update changelog [skip ci] ([12e969b](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/12e969b9209e5b748a991d7befa78f11518db43e)) @github-actions[bot]
 - docs: update changelog [skip ci] ([108db1a](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/108db1a9de4193c95fbea2c377809306e6714269)) @github-actions[bot]
 - docs: update changelog [skip ci] ([c9afade](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/c9afade6080622000a72fe58e3a48a737dc9f67b)) @github-actions[bot]
 - docs: update changelog [skip ci] ([1e23d90](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/1e23d90ebb54f240424b6836d9ff60f897c0a0c2)) @github-actions[bot]
