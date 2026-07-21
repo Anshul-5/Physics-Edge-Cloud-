@@ -15,6 +15,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - docs: update changelog [skip ci] ([dfc9684](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/dfc9684814dcd97602fe4008a15ba48d03ad3e80)) @github-actions[bot]
 
 ### Changed
+- Merge pull request #78 from Anshul-5/dependabot/github_actions/actions/upload-pages-artifact-5
+
+ci: bump actions/upload-pages-artifact from 3 to 5 ([2e19dd9](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/2e19dd922a68c7396596e60c6612656504ea077a)) @Purvansh Joshi
 - fix(ci): always comment benchmark results (pass or fail) ([4102842](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/41028425d5800467502be5dba193ccac0cb76f4d)) @Purvansh Joshi
 - fix(ci): update labeler.yml to v5 format ([4a8ac26](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/4a8ac26d13ff8486dfec78b21fd0034fc748e9f5)) @Purvansh Joshi
 - Merge pull request #67 from Anshul-5/dependabot/github_actions/amannn/action-semantic-pull-request-6
