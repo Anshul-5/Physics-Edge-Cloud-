@@ -20,6 +20,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - docs: update changelog [skip ci] ([dfc9684](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/dfc9684814dcd97602fe4008a15ba48d03ad3e80)) @github-actions[bot]
 
 ### Changed
+- Merge pull request #84 from Anshul-5/dependabot/github_actions/github/codeql-action-4.37.4
+
+ci: bump github/codeql-action from 4 to 4.37.4 ([c75d977](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/c75d977baf6fc3d56a6f7ea2052643383c52ddfd)) @Purvansh Joshi
 - Merge pull request #81 from Anshul-5/dependabot/github_actions/github/codeql-action-4
 
 ci: bump github/codeql-action from 3 to 4 ([30c18b1](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/30c18b196fd63ddb5e58933238ec885f60daaa7c)) @Purvansh Joshi
