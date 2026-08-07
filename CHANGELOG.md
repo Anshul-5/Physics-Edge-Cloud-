@@ -86,6 +86,8 @@ All 21 CI checks passing. Fixes commitlint subject length limit (72→78) and se
 - ci: add dependabot and codeql configuration ([285af08](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/285af08627eb31e6822708ac69b6141d6ad1ac51)) @Purvansh Joshi
 - ci: use github-script for changelog ([5d5ad23](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/5d5ad23c428698630f864b6bfb24bec8e58d4fb8)) @Purvansh Joshi
 ### Added
+- Homography projection and ground-plane kinematics (Q16.16 fixed-point, EWMA-filtered velocity/acceleration/jerk)
+- Unit test suite for homography projection and kinematics
 - ESP32-S3 camera capture driver (QVGA grayscale, double-buffered)
 - INT8 bilinear downscaler (320x240 -> 160x120, Q8.8 fixed-point)
 - Block-based SAD optical flow (16x16 macroblocks, SIMD-optimized)
