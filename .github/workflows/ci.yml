@@ -105,6 +105,14 @@ jobs:
               -o test_optical_flow -lm
           ./test_optical_flow
 
+      - name: Compile and run homography tests with coverage
+        run: |
+          gcc --coverage -I edge/components/homography/include \
+              edge/components/homography/homography.c \
+              edge/test/test_homography.c \
+              -o test_homography -lm
+          ./test_homography
+
       - name: Generate coverage report
         if: always()
         run: |
