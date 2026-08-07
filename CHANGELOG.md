@@ -20,6 +20,29 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - docs: update changelog [skip ci] ([dfc9684](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/dfc9684814dcd97602fe4008a15ba48d03ad3e80)) @github-actions[bot]
 
 ### Changed
+- feat(edge): Homography projection and ground-plane kinematics (#8) (#85)
+
+* feat(edge): add homography projection and ground-plane kinematics
+
+Implements Issue #8: maps pixel-space optical flow displacements to metric
+ground-plane coordinates via a Q16.16 fixed-point planar homography, then
+computes velocity/acceleration/jerk with backward differences and a 3-tap
+EWMA filter for noise suppression.
+
+- components/homography: opaque-context API (init/project/kinematics_update/deinit)
+- Q16.16 fixed-point arithmetic, no float on MCU
+- Denominator guard rejects degenerate (near-horizon) projections
+- Host-side unit tests (10) covering conversion, projection, guard,
+  constant velocity, acceleration, EWMA smoothing, and null inputs
+- Wire test into CI Unit Tests job with gcov coverage
+
+* ci: fix semver-check shell injection and document homography in changelog
+
+Pass PR title/body via environment variables instead of inlining them into
+the shell script, which caused command-substitution failures whenever a PR
+body contained backticks or dollar signs (e.g. code examples).
+
+Also add homography projection feature to the CHANGELOG. ([43263b7](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/43263b7e55164d9478adb813aff3b70fbb862798)) @Purvansh Joshi
 - Merge pull request #84 from Anshul-5/dependabot/github_actions/github/codeql-action-4.37.4
 
 ci: bump github/codeql-action from 4 to 4.37.4 ([c75d977](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/c75d977baf6fc3d56a6f7ea2052643383c52ddfd)) @Purvansh Joshi
