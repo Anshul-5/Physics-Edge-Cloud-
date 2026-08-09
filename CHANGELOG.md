@@ -69,6 +69,12 @@ ci: bump actions/checkout from 4 to 7 ([957ec88](https://github.com/Anshul-5/Phy
 - fix(ci): run changelog only after CI passes ([15cd87b](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/15cd87be4626383943053200a3694f55b48fc11f)) @Purvansh Joshi
 
 ### Infrastructure
+- ci: exempt roadmap subtask and epic issues from stale bot
+
+The stale bot flagged 16 planned roadmap subtasks (L2-L9) that have not
+been scheduled yet. Exempt issues carrying the 'type: subtask' or
+'type: epic' labels so planned roadmap work is not auto-marked stale and
+closed. Existing stale labels were removed from issues 15-30. ([e89a4f1](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/e89a4f144cc09b7c4fb110a1c5124e16b639237a)) @Purvansh Joshi
 - ci: make pages workflow skip gracefully when Pages not enabled ([2285066](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/2285066c2cd7b8af7c730b2b8ade30f85dad8233)) @Purvansh Joshi
 - ci: fix SBOM SARIF upload and size-history ESP-IDF action ([77f1a1e](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/77f1a1e376a0cad08e8593342398e3729dce8274)) @Purvansh Joshi
 - ci: add SBOM, scorecard, changelog validation, and history tracking
