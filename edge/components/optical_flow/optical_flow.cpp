@@ -257,5 +257,5 @@ bool optical_flow_compute(optical_flow_ctx_t *ctx,
 }
 
 void optical_flow_deinit(optical_flow_ctx_t *ctx) {
-    if (ctx) free(ctx);
+    free(ctx);
 }

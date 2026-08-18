@@ -99,5 +99,5 @@ const uint8_t *downscale_bilinear(downscaler_ctx_t *ctx, const InputFrame *input
 }
 
 void downscaler_deinit(downscaler_ctx_t *ctx) {
-    if (ctx) free(ctx);
+    free(ctx);
 }
