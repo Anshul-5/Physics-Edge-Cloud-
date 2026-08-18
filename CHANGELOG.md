@@ -20,6 +20,17 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - docs: update changelog [skip ci] ([dfc9684](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/dfc9684814dcd97602fe4008a15ba48d03ad3e80)) @github-actions[bot]
 
 ### Changed
+- feat(edge): C to C++ Migration for L1 Gate Firmware (#88)
+
+* feat(edge): convert L1 firmware from C to C++ for type safety and object-oriented abstractions
+
+* fix(ci): update workflows to compile .cpp files with g++
+
+* fix(test): remove c-style compound literal address assignment for strict c++ compliance
+
+* ci: fix debconf interactive hang during apt-get install
+
+* ci: remove buggy lcov mismatch flag causing perl infinite loop ([0bc1315](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/0bc1315dd2aa9af658c9510adfa53ed44766cd72)) @Purvansh Joshi
 - feat(edge): Homography projection and ground-plane kinematics (#8) (#85)
 
 * feat(edge): add homography projection and ground-plane kinematics
