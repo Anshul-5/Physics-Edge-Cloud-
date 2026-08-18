@@ -87,7 +87,7 @@ jobs:
       - name: Install GCC and lcov
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc lcov
+          DEBIAN_FRONTEND=noninteractive sudo apt-get install -y --no-install-recommends gcc g++ lcov
 
       - name: Compile and run downscaler tests with coverage
         run: |
