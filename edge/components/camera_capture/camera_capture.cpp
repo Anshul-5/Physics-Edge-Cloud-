@@ -83,7 +83,7 @@ static bool configure_sensor(void) {
 }
 
 camera_capture_ctx_t *camera_capture_init(void) {
-    camera_capture_ctx_t *ctx = calloc(1, sizeof(camera_capture_ctx_t));
+    camera_capture_ctx_t *ctx = static_cast<camera_capture_ctx_t*>(calloc(1, sizeof(camera_capture_ctx_t)));
     if (!ctx) {
         ESP_LOGE(TAG, "Failed to allocate capture context");
         return NULL;
@@ -99,10 +99,10 @@ camera_capture_ctx_t *camera_capture_init(void) {
     /* Allocate double buffers in PSRAM for large frames */
     const size_t frame_bytes = CAPTURE_WIDTH * CAPTURE_HEIGHT;
     for (int i = 0; i < FRAME_BUFFER_COUNT; i++) {
-        ctx->buffers[i].buffer = heap_caps_malloc(frame_bytes, MALLOC_CAP_SPIRAM);
+        ctx->buffers[i].buffer = static_cast<uint8_t*>(heap_caps_malloc(frame_bytes, MALLOC_CAP_SPIRAM));
         if (!ctx->buffers[i].buffer) {
             /* Fallback to internal SRAM if PSRAM unavailable */
-            ctx->buffers[i].buffer = malloc(frame_bytes);
+            ctx->buffers[i].buffer = static_cast<uint8_t*>(malloc(frame_bytes));
         }
         if (!ctx->buffers[i].buffer) {
             ESP_LOGE(TAG, "Failed to allocate frame buffer %d", i);

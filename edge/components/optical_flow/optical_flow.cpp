@@ -176,7 +176,7 @@ static float block_variance(const uint8_t *block, int32_t stride) {
  * ============================================================ */
 
 optical_flow_ctx_t *optical_flow_init(void) {
-    return calloc(1, sizeof(optical_flow_ctx_t));
+    return static_cast<optical_flow_ctx_t*>(calloc(1, sizeof(optical_flow_ctx_t)));
 }
 
 bool optical_flow_compute(optical_flow_ctx_t *ctx,

@@ -1,4 +1,4 @@
 idf_component_register(
-    SRCS "homography.c"
+    SRCS "homography.cpp"
     INCLUDE_DIRS "include"
 )

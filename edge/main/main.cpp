@@ -25,7 +25,7 @@ static uint8_t scaled_buffer[DOWNSCALED_BUF_SIZE];
 /** Double buffer for frame history (previous downscaled frame) */
 static uint8_t prev_frame_buffer[DOWNSCALED_BUF_SIZE];
 
-void app_main(void) {
+extern "C" void app_main(void) {
     ESP_LOGI(TAG, "=== PhysEdge-Cloud L1 Edge Gate ===");
     ESP_LOGI(TAG, "ESP32-S3 @ %d MHz", CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_240);
 

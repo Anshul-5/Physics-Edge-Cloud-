@@ -25,7 +25,7 @@ struct downscaler_ctx {
 downscaler_ctx_t *downscaler_init(uint8_t *output_buffer) {
     if (!output_buffer) return NULL;
 
-    downscaler_ctx_t *ctx = calloc(1, sizeof(downscaler_ctx_t));
+    downscaler_ctx_t *ctx = static_cast<downscaler_ctx_t*>(calloc(1, sizeof(downscaler_ctx_t)));
     if (!ctx) return NULL;
 
     ctx->output = output_buffer;

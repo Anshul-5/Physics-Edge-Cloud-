@@ -106,7 +106,8 @@ static int test_null_input(void) {
     const uint8_t *result = downscale_bilinear(ctx, NULL);
     assert(result == NULL);
 
-    result = downscale_bilinear(ctx, &(InputFrame){NULL, 320, 240, 320});
+    InputFrame null_frame = {NULL, 320, 240, 320};
+    result = downscale_bilinear(ctx, &null_frame);
     assert(result == NULL);
 
     downscaler_deinit(ctx);
