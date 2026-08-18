@@ -116,7 +116,7 @@ jobs:
       - name: Generate coverage report
         if: always()
         run: |
-          lcov --capture --directory . --output-file coverage.info --ignore-errors mismatch 2>/dev/null || true
+          lcov --capture --directory . --output-file coverage.info 2>/dev/null || true
           lcov --remove coverage.info '/usr/*' --output-file coverage_filtered.info 2>/dev/null || true
           lcov --list coverage_filtered.info 2>/dev/null || true
           echo "## Code Coverage" >> $GITHUB_STEP_SUMMARY
