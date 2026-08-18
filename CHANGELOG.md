@@ -69,6 +69,23 @@ ci: bump actions/checkout from 4 to 7 ([957ec88](https://github.com/Anshul-5/Phy
 - fix(ci): run changelog only after CI passes ([15cd87b](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/15cd87be4626383943053200a3694f55b48fc11f)) @Purvansh Joshi
 
 ### Infrastructure
+- ci: bump github/codeql-action from 4.37.4 to 4.37.7 (#87)
+
+Bumps [github/codeql-action](https://github.com/github/codeql-action) from 4.37.4 to 4.37.7.
+- [Release notes](https://github.com/github/codeql-action/releases)
+- [Changelog](https://github.com/github/codeql-action/blob/main/CHANGELOG.md)
+- [Commits](https://github.com/github/codeql-action/compare/v4.37.4...v4.37.7)
+
+---
+updated-dependencies:
+- dependency-name: github/codeql-action
+  dependency-version: 4.37.7
+  dependency-type: direct:production
+  update-type: version-update:semver-patch
+...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com> ([1b4b53c](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/1b4b53cb785d6e2156fa7486aac3cffc9230baea)) @dependabot[bot]
 - ci: exempt roadmap subtask and epic issues from stale bot
 
 The stale bot flagged 16 planned roadmap subtasks (L2-L9) that have not
