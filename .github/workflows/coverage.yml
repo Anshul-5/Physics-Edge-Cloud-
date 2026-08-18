@@ -26,6 +26,12 @@ jobs:
               -o test_jerk_baseline -lm
           ./test_jerk_baseline
 
+          g++ --coverage -I edge/components/uplink_buffer/include \
+              edge/components/uplink_buffer/uplink_buffer.cpp \
+              edge/test/test_uplink_buffer.cpp \
+              -o test_uplink_buffer -lm
+          ./test_uplink_buffer
+
           g++ --coverage -I edge/components/downscaler/include \
               edge/components/downscaler/downscaler.cpp \
               edge/test/test_downscaler.cpp \

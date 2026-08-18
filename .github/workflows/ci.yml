@@ -121,6 +121,14 @@ jobs:
               -o test_jerk_baseline -lm
           ./test_jerk_baseline
 
+      - name: Compile and run uplink buffer tests with coverage
+        run: |
+          g++ --coverage -I edge/components/uplink_buffer/include \
+              edge/components/uplink_buffer/uplink_buffer.cpp \
+              edge/test/test_uplink_buffer.cpp \
+              -o test_uplink_buffer -lm
+          ./test_uplink_buffer
+
       - name: Generate coverage report
         if: always()
         run: |

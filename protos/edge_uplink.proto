@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package physics_edge;
+
+message FlowVector {
+    int32 dx = 1;
+    int32 dy = 2;
+}
+
+message EdgeTriggerPayload {
+    uint64 timestamp_ms = 1;
+    string device_id = 2;
+    float suspicion_probability = 3;
+    float jerk_magnitude = 4;
+    
+    // Raw binary streams of the video frame and optical flow field
+    bytes frame_jpg = 5;
+    repeated FlowVector flow_field = 6;
+}
