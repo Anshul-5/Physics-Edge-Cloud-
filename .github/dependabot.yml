@@ -14,27 +14,14 @@ updates:
     commit-message:
       prefix: "ci"
 
-  # ESP-IDF components (via idf_component.yml)
-  - package-ecosystem: "docker"
-    directory: "/"
-    schedule:
-      interval: "monthly"
-    labels:
-      - "dependencies"
-      - "docker"
-    commit-message:
-      prefix: "chore"
-
-  # pip (for any Python tooling)
+  # Python dependencies
   - package-ecosystem: "pip"
-    directory: "/"
+    directory: "/regional_node"
     schedule:
-      interval: "monthly"
+      interval: "weekly"
     labels:
       - "dependencies"
       - "python"
     commit-message:
       prefix: "chore"
-    ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-patch"]
+
