@@ -20,6 +20,12 @@ jobs:
 
       - name: Compile and run tests with coverage
         run: |
+          g++ --coverage -I edge/components/jerk_baseline/include \
+              edge/components/jerk_baseline/jerk_baseline.cpp \
+              edge/test/test_jerk_baseline.cpp \
+              -o test_jerk_baseline -lm
+          ./test_jerk_baseline
+
           g++ --coverage -I edge/components/downscaler/include \
               edge/components/downscaler/downscaler.cpp \
               edge/test/test_downscaler.cpp \
