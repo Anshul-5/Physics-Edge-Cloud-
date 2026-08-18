@@ -91,25 +91,25 @@ jobs:
 
       - name: Compile and run downscaler tests with coverage
         run: |
-          gcc --coverage -I edge/components/downscaler/include \
-              edge/components/downscaler/downscaler.c \
-              edge/test/test_downscaler.c \
+          g++ --coverage -I edge/components/downscaler/include \
+              edge/components/downscaler/downscaler.cpp \
+              edge/test/test_downscaler.cpp \
               -o test_downscaler -lm
           ./test_downscaler
 
       - name: Compile and run optical flow tests with coverage
         run: |
-          gcc --coverage -I edge/components/optical_flow/include \
-              edge/components/optical_flow/optical_flow.c \
-              edge/test/test_optical_flow.c \
+          g++ --coverage -I edge/components/optical_flow/include \
+              edge/components/optical_flow/optical_flow.cpp \
+              edge/test/test_optical_flow.cpp \
               -o test_optical_flow -lm
           ./test_optical_flow
 
       - name: Compile and run homography tests with coverage
         run: |
-          gcc --coverage -I edge/components/homography/include \
-              edge/components/homography/homography.c \
-              edge/test/test_homography.c \
+          g++ --coverage -I edge/components/homography/include \
+              edge/components/homography/homography.cpp \
+              edge/test/test_homography.cpp \
               -o test_homography -lm
           ./test_homography
 

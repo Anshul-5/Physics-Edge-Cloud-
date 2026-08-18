@@ -22,7 +22,7 @@ jobs:
 
       - name: Build benchmarks
         run: |
-          cat > bench_optical_flow.c << 'EOF'
+          cat > bench_optical_flow.cpp << 'EOF'
           #include <stdio.h>
           #include <stdlib.h>
           #include <time.h>
@@ -67,9 +67,9 @@ jobs:
           }
           EOF
 
-          gcc -I edge/components/optical_flow/include \
-              edge/components/optical_flow/optical_flow.c \
-              bench_optical_flow.c \
+          g++ -I edge/components/optical_flow/include \
+              edge/components/optical_flow/optical_flow.cpp \
+              bench_optical_flow.cpp \
               -o bench_optical_flow -lm
 
       - name: Run benchmarks
