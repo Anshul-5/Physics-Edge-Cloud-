@@ -113,6 +113,14 @@ jobs:
               -o test_homography -lm
           ./test_homography
 
+      - name: Compile and run jerk baseline tests with coverage
+        run: |
+          g++ --coverage -I edge/components/jerk_baseline/include \
+              edge/components/jerk_baseline/jerk_baseline.cpp \
+              edge/test/test_jerk_baseline.cpp \
+              -o test_jerk_baseline -lm
+          ./test_jerk_baseline
+
       - name: Generate coverage report
         if: always()
         run: |
