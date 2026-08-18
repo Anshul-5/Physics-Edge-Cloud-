@@ -8,6 +8,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 ### Added
+- Implemented Python asyncio gRPC telemetry receiver for L2 Regional Node with Priority Queueing (#11)
 - Added ESP32-S3 PSRAM Circular Buffer data store and Protobuf Uplink schema (#10)
 - Implemented EWMA Jerk Baseline and Hysteresis Gating for smart motion triggering (#9)
 

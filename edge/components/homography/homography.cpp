@@ -153,5 +153,5 @@ bool homography_kinematics_update(homography_ctx_t *ctx,
 
 void homography_deinit(homography_ctx_t *ctx)
 {
-    if (ctx) free(ctx);
+    free(ctx);
 }

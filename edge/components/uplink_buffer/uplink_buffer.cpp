@@ -30,12 +30,8 @@ bool uplink_buffer_push(ring_buffer_t *rb, buffer_entry_t *entry) {
     // If full, we overwrite the oldest (tail)
     if (rb->count == rb->capacity) {
         // Free old memory inside the entry before overwriting
-        if (rb->entries[rb->tail].frame_data) {
-            free(rb->entries[rb->tail].frame_data);
-        }
-        if (rb->entries[rb->tail].flow_vectors) {
-            free(rb->entries[rb->tail].flow_vectors);
-        }
+        free(rb->entries[rb->tail].frame_data);
+        free(rb->entries[rb->tail].flow_vectors);
         
         rb->tail = (rb->tail + 1) % rb->capacity;
         rb->count--;
@@ -106,8 +102,8 @@ void uplink_buffer_deinit(ring_buffer_t *rb) {
     while (rb->count > 0) {
         buffer_entry_t entry;
         if (uplink_buffer_pop(rb, &entry)) {
-            if (entry.frame_data) free(entry.frame_data);
-            if (entry.flow_vectors) free(entry.flow_vectors);
+            free(entry.frame_data);
+            free(entry.flow_vectors);
         }
     }
     
