@@ -32,17 +32,17 @@ class FusionEngine:
         using naive Bayesian Recursive Log-Odds updating.
         L_fused = L_edge + L_l2
         """
-        # Clamp inputs
-        edge_prob = max(1e-7, min(edge_prob, 1 - 1e-7))
-        l2_prob = max(1e-7, min(l2_prob, 1 - 1e-7))
-        
-        # Calculate log-odds
-        l_edge = math.log(edge_prob / (1.0 - edge_prob))
-        l_l2 = math.log(l2_prob / (1.0 - l2_prob))
-        
-        # Fuse log-odds
-        l_fused = l_edge + l_l2
-        
-        # Convert back to probability
+        return self.fuse_log_odds_multi([edge_prob, l2_prob])
+
+    def fuse_log_odds_multi(self, probabilities):
+        """
+        Fuses a list of independent probabilities using Bayesian Log-Odds updating.
+        L_fused = sum(L_i)
+        """
+        l_fused = 0.0
+        for prob in probabilities:
+            prob_clamped = max(1e-7, min(prob, 1 - 1e-7))
+            l_fused += math.log(prob_clamped / (1.0 - prob_clamped))
+            
         fused_prob = 1.0 / (1.0 + math.exp(-l_fused))
         return float(fused_prob)
