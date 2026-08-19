@@ -12,19 +12,27 @@ import edge_uplink_pb2_grpc
 
 from fusion_engine import FusionEngine
 from pose_engine import PoseEngine
+from backpressure import BackpressureManager
 from ultralytics import YOLO
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("L2-Telemetry-Receiver")
 
 class PriorityStreamQueue:
-    def __init__(self, fusion_engine, pose_engine, model):
+    def __init__(self, fusion_engine, pose_engine, backpressure_manager, model):
         self.pq = queue.PriorityQueue()
         self.fusion_engine = fusion_engine
         self.pose_engine = pose_engine
+        self.backpressure_manager = backpressure_manager
         self.model = model
 
     def put_payload(self, device_id, suspicion, frame_bytes):
+        # 1. Backpressure Check
+        if self.backpressure_manager.should_abstain(self.pq.qsize(), suspicion):
+            logger.warning(f"ABSTAIN: Dropping low-suspicion frame from {device_id} due to heavy queue load.")
+            return
+
+        # 2. Accept and Queue
         # Negative suspicion because PriorityQueue retrieves lowest first
         priority = -suspicion
         self.pq.put((priority, time.time(), device_id, suspicion, frame_bytes))
@@ -90,12 +98,13 @@ def run_worker_thread(pq):
     pq.process_loop()
 
 async def serve():
-    logger.info("Initializing YOLOv8n, PoseEngine, and Fusion Engine...")
+    logger.info("Initializing YOLOv8n, PoseEngine, BackpressureManager, and Fusion Engine...")
     fusion_engine = FusionEngine(temperature=1.5)
     pose_engine = PoseEngine()
+    backpressure_manager = BackpressureManager(max_queue_size=50, abstain_threshold=0.8)
     model = YOLO("yolov8n.pt")
     
-    pq = PriorityStreamQueue(fusion_engine, pose_engine, model)
+    pq = PriorityStreamQueue(fusion_engine, pose_engine, backpressure_manager, model)
     
     worker = threading.Thread(target=run_worker_thread, args=(pq,), daemon=True)
     worker.start()
