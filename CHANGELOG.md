@@ -28,6 +28,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - docs: update changelog [skip ci] ([dfc9684](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/dfc9684814dcd97602fe4008a15ba48d03ad3e80)) @github-actions[bot]
 
 ### Changed
+- Merge pull request #93 from Anshul-5/feat/phase2-yolo-fusion
+
+feat: Phase 2 YOLOv8 Integration & Calibrated Log-Odds Fusion ([c91f4eb](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/c91f4eb95600a4681f436ea0f0303636393803b0)) @Purvansh Joshi
 - Merge pull request #91 from Anshul-5/feat/issue-11-l2-telemetry
 
 feat(l2-node): L2 Node Telemetry Receiver & Frame Stream Handler ([780a524](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/780a52450477af137c1b8075dc9a9d67d96311af)) @Purvansh Joshi
