@@ -32,6 +32,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - docs: update changelog [skip ci] ([dfc9684](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/dfc9684814dcd97602fe4008a15ba48d03ad3e80)) @github-actions[bot]
 
 ### Changed
+- Merge pull request #96 from Anshul-5/feat/phase3-cluster-a
+
+feat: L3 Graph Structural Adjacency & Mem-AE ([3874b8a](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/3874b8a103982c9fd8b106460b5592986ec925f4)) @Purvansh Joshi
 - Merge pull request #93 from Anshul-5/feat/phase2-yolo-fusion
 
 feat: Phase 2 YOLOv8 Integration & Calibrated Log-Odds Fusion ([c91f4eb](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/c91f4eb95600a4681f436ea0f0303636393803b0)) @Purvansh Joshi
