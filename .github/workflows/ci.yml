@@ -15,7 +15,7 @@ jobs:
   # ============================================================
   lint:
     name: Lint & Format
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v7
 
@@ -40,7 +40,7 @@ jobs:
   # ============================================================
   build:
     name: Build ESP32-S3
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: lint
     steps:
       - uses: actions/checkout@v7
@@ -79,7 +79,7 @@ jobs:
   # ============================================================
   test:
     name: Unit Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: lint
     steps:
       - uses: actions/checkout@v7
@@ -156,7 +156,7 @@ jobs:
   # ============================================================
   stack-analysis:
     name: Stack Usage Analysis
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: build
     steps:
       - uses: actions/checkout@v7
@@ -190,7 +190,7 @@ jobs:
   # ============================================================
   dependency-audit:
     name: Dependency Audit
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v7
 
@@ -221,7 +221,7 @@ jobs:
   # ============================================================
   kconfig-validation:
     name: Kconfig Validation
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: build
     steps:
       - uses: actions/checkout@v7
@@ -252,7 +252,7 @@ jobs:
   # ============================================================
   memory-analysis:
     name: Memory Analysis
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: build
     steps:
       - uses: actions/checkout@v7
@@ -287,7 +287,7 @@ jobs:
   # ============================================================
   binary-size:
     name: Binary Size Tracking
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: build
     steps:
       - uses: actions/checkout@v7
@@ -324,7 +324,7 @@ jobs:
   # ============================================================
   docs:
     name: Docs Validation
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v7
 

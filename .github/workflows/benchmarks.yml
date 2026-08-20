@@ -65,7 +65,7 @@ jobs:
               optical_flow_deinit(ctx);
               return 0;
           }
-          EOF
+EOF
 
           g++ -I edge/components/optical_flow/include \
               edge/components/optical_flow/optical_flow.cpp \
