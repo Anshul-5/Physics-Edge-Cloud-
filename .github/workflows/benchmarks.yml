@@ -22,8 +22,8 @@ jobs:
 
       - name: Build benchmarks
         run: |
-          cat > bench_optical_flow.cpp << 'EOF'
-          #include <stdio.h>
+          python3 -c '
+          code = """#include <stdio.h>
           #include <stdlib.h>
           #include <time.h>
           #include "optical_flow.h"
@@ -49,23 +49,25 @@ jobs:
               double avg_ms = elapsed / iterations;
               double fps = 1000.0 / avg_ms;
 
-              printf("=== Optical Flow Benchmark ===\n");
-              printf("Iterations: %d\n", iterations);
-              printf("Total time: %.2f ms\n", elapsed);
-              printf("Avg per frame: %.3f ms\n", avg_ms);
-              printf("Throughput: %.1f FPS\n", fps);
-              printf("Blocks: %d\n", NUM_BLOCKS);
+              printf("=== Optical Flow Benchmark ===\\n");
+              printf("Iterations: %d\\n", iterations);
+              printf("Total time: %.2f ms\\n", elapsed);
+              printf("Avg per frame: %.3f ms\\n", avg_ms);
+              printf("Throughput: %.1f FPS\\n", fps);
+              printf("Blocks: %d\\n", NUM_BLOCKS);
 
               if (avg_ms > 18.0) {
-                  printf("FAIL: Exceeded 18ms target (%.3f ms)\n", avg_ms);
+                  printf("FAIL: Exceeded 18ms target (%.3f ms)\\n", avg_ms);
                   return 1;
               }
-              printf("PASS: Within 18ms target\n");
+              printf("PASS: Within 18ms target\\n");
 
               optical_flow_deinit(ctx);
               return 0;
           }
-          EOF
+          """
+          with open("bench_optical_flow.cpp", "w") as f: f.write(code)
+          '
 
           g++ -I edge/components/optical_flow/include \
               edge/components/optical_flow/optical_flow.cpp \

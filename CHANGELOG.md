@@ -8,6 +8,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 ### Added
+- Implemented Spatio-Temporal Graph Architecture for Cloud Engine (#16)
+- Implemented PyTorch Memory-Augmented Autoencoder (Mem-AE) for open-set anomaly detection (#17)
 - Implemented Multi-Camera Backpressure Manager and Abstain Policy for L2 Node (#15)
 - Implemented MediaPipe BlazePose Landmark Extraction for L2 skeletal posture analysis (#13)
 - Implemented Python asyncio gRPC telemetry receiver for L2 Regional Node with Protobuf compilation (#12)
