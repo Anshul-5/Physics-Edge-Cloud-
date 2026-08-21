@@ -47,6 +47,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - docs: update changelog [skip ci] ([dfc9684](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/dfc9684814dcd97602fe4008a15ba48d03ad3e80)) @github-actions[bot]
 
 ### Changed
+- Merge pull request #107 from Anshul-5/feat/phase5-closed-loop-ops-ota
+
+feat(phase5): add closed-loop telemetry, ops dashboard & OTA security ([d2a5c49](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/d2a5c49e13ca4d86fdc07c67349855cd98f47012)) @Purvansh Joshi
 - Merge pull request #105 from Anshul-5/feat/phase5-retraining-canary-sprt
 
 feat(phase5): add Champion/Challenger pipeline & SPRT canary ([0f567d1](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/0f567d1c7c59430aa643d548b37d386eedfcab2c)) @Purvansh Joshi
