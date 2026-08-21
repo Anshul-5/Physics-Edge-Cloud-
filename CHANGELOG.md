@@ -150,6 +150,7 @@ ci: bump actions/checkout from 4 to 7 ([957ec88](https://github.com/Anshul-5/Phy
 - fix(ci): run changelog only after CI passes ([15cd87b](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/15cd87be4626383943053200a3694f55b48fc11f)) @Purvansh Joshi
 
 ### Infrastructure
+- ci: add workflow_dispatch to pages.yml ([e0500e3](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/e0500e3d8c174daf9aab56251dc77181651e2cef)) @Purvansh Joshi
 - ci: bump github/codeql-action from 4.37.4 to 4.37.7 (#87)
 
 Bumps [github/codeql-action](https://github.com/github/codeql-action) from 4.37.4 to 4.37.7.
