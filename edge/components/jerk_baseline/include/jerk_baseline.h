@@ -34,6 +34,8 @@ jerk_ctx_t *jerk_baseline_init(float alpha, float threshold, int k, int m);
 /* Process a new jerk magnitude and return true if an anomaly trigger is met */
 bool jerk_baseline_update(jerk_ctx_t *ctx, int hour_of_day, float jerk_mag, float *out_surprise);
 
+bool jerk_baseline_apply_constraint(jerk_ctx_t *ctx, float factor);
+
 void jerk_baseline_deinit(jerk_ctx_t *ctx);
 
 #ifdef __cplusplus

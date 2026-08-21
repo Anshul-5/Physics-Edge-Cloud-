@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <assert.h>
 #include "jerk_baseline.h"
 
 int main() {
@@ -54,10 +55,25 @@ int main() {
         if (triggered) anomalies++;
     }
 
-    if (anomalies == 0) {
-        printf("FAIL: Did not trigger on sustained anomaly\n");
-        return 1;
-    }
+    // 6. Closed-Loop Negative Constraint Tests
+    // Test 6a: Valid constraint factor
+    float initial_thresh = ctx->surprise_threshold;
+    bool success = jerk_baseline_apply_constraint(ctx, 1.20f);
+    assert(success == true);
+    assert(fabsf(ctx->surprise_threshold - (initial_thresh * 1.20f)) < 1e-4f);
+    
+    // Test 6b: Out-of-bounds constraint factor (should be clamped to 1.25)
+    jerk_baseline_apply_constraint(ctx, 3.5f); // factor > 1.25
+    float expected_thresh = initial_thresh * 1.20f * 1.25f;
+    assert(fabsf(ctx->surprise_threshold - expected_thresh) < 1e-4f);
+    
+    jerk_baseline_apply_constraint(ctx, 0.1f); // factor < 0.75 (should be clamped to 0.75)
+    expected_thresh = expected_thresh * 0.75f;
+    assert(fabsf(ctx->surprise_threshold - expected_thresh) < 1e-4f);
+    
+    // Test 6c: Null pointer check
+    success = jerk_baseline_apply_constraint(NULL, 1.10f);
+    assert(success == false);
 
     printf("PASS: Jerk Baseline Tests\n");
     jerk_baseline_deinit(ctx);

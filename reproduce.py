@@ -53,6 +53,12 @@ COMPONENTS = {
         "test": "edge/test/test_homography.cpp",
         "inc": "edge/components/homography/include",
         "binary": "test_homography",
+    },
+    "Jerk Baseline": {
+        "src": "edge/components/jerk_baseline/jerk_baseline.cpp",
+        "test": "edge/test/test_jerk_baseline.cpp",
+        "inc": "edge/components/jerk_baseline/include",
+        "binary": "test_jerk_baseline",
     }
 }
 
