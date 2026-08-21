@@ -69,3 +69,56 @@ class SpatialGraphEngine:
             results[n] = s_new[idx]
             
         return results
+
+    def calculate_spectral_instability(self, threshold=0.1):
+        """
+        Calculates the Normalized Laplacian and its Fiedler eigenvalue (second smallest eigenvalue).
+        Flags instability if the difference between the previous and current Fiedler eigenvalue
+        exceeds the threshold.
+        
+        Returns:
+            tuple: (fiedler_val, is_unstable)
+        """
+        if len(self.graph.nodes) < 2:
+            return 0.0, False
+            
+        try:
+            # 1. Compute the Normalized Laplacian matrix
+            L = nx.normalized_laplacian_matrix(self.graph)
+            
+            # Convert to dense or use sparse solver
+            n_nodes = len(self.graph.nodes)
+            if n_nodes <= 10:
+                # For small graphs, dense solver is more stable
+                eigenvalues = np.linalg.eigvalsh(L.toarray())
+            else:
+                # For larger graphs, sparse solver eigsh with k=2 SM (Smallest Magnitude)
+                eigenvalues, _ = sp.linalg.eigsh(L, k=2, which='SM')
+                
+            # Eigenvalues are sorted in ascending order
+            # The smallest eigenvalue of normalized Laplacian is always 0.
+            # The second smallest is the Fiedler eigenvalue.
+            fiedler_val = eigenvalues[1] if len(eigenvalues) > 1 else 0.0
+        except Exception:
+            # Fallback to dense eigenvalue calculation in case of solver issues
+            try:
+                L = nx.normalized_laplacian_matrix(self.graph).toarray()
+                eigenvalues = np.linalg.eigvalsh(L)
+                fiedler_val = eigenvalues[1] if len(eigenvalues) > 1 else 0.0
+            except Exception:
+                fiedler_val = 0.0
+                
+        # Compare with previous Fiedler eigenvalue
+        prev_fiedler = getattr(self, '_prev_fiedler', None)
+        self._prev_fiedler = fiedler_val
+        
+        if prev_fiedler is None:
+            return fiedler_val, False
+            
+        # Delta lambda_2 = lambda_2(prev) - lambda_2(curr)
+        # Instability when Fiedler eigenvalue decreases significantly (representing clustering/splitting)
+        delta_lambda = prev_fiedler - fiedler_val
+        is_unstable = delta_lambda > threshold
+        
+        return fiedler_val, is_unstable
+

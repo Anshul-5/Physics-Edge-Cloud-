@@ -8,6 +8,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 ### Added
+- Implemented Precision-Weighted Risk Opinion Pool (CROP) with variance tracking for L3 Engine (#18)
+- Implemented Time-Adaptive Conformal Prediction Coverage and alert boundaries for L3 Engine (#19)
+- Added Graph Laplacian Fiedler eigenvalue and spectral instability calculations to SpatialGraphEngine (#3)
 - Implemented Spatio-Temporal Graph Architecture for Cloud Engine (#16)
 - Implemented PyTorch Memory-Augmented Autoencoder (Mem-AE) for open-set anomaly detection (#17)
 - Implemented Multi-Camera Backpressure Manager and Abstain Policy for L2 Node (#15)
