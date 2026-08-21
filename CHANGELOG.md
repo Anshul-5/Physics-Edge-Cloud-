@@ -35,6 +35,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - docs: update changelog [skip ci] ([dfc9684](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/dfc9684814dcd97602fe4008a15ba48d03ad3e80)) @github-actions[bot]
 
 ### Changed
+- Merge pull request #100 from Anshul-5/feat/openssf-security-hardening
+
+chore(security): apply comprehensive OpenSSF Scorecard hardening ([f5e7d9d](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/f5e7d9d0af61915195e7c5c7106b4f6864e8f5ef)) @Purvansh Joshi
 - Merge pull request #99 from Anshul-5/ci/configure-scorecard-action
 
 ci: configure OpenSSF Scorecard permissions and OIDC publishing ([e9b3d8d](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/e9b3d8dbdb5f9e8d634c98f9b52811703de149d6)) @Purvansh Joshi
