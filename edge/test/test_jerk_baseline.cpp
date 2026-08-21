@@ -54,6 +54,7 @@ int main() {
         triggered = jerk_baseline_update(ctx, hour, 20.0f, &surprise);
         if (triggered) anomalies++;
     }
+    assert(anomalies > 0);
 
     // 6. Closed-Loop Negative Constraint Tests
     // Test 6a: Valid constraint factor
@@ -73,6 +74,14 @@ int main() {
     
     // Test 6c: Null pointer check
     success = jerk_baseline_apply_constraint(NULL, 1.10f);
+    assert(success == false);
+    
+    // Test 6d: NaN check
+    success = jerk_baseline_apply_constraint(ctx, NAN);
+    assert(success == false);
+    
+    // Test 6e: Inf check
+    success = jerk_baseline_apply_constraint(ctx, INFINITY);
     assert(success == false);
 
     printf("PASS: Jerk Baseline Tests\n");

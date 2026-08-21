@@ -77,7 +77,7 @@ bool jerk_baseline_update(jerk_ctx_t *ctx, int hour_of_day, float jerk_mag, floa
 }
 
 bool jerk_baseline_apply_constraint(jerk_ctx_t *ctx, float factor) {
-    if (!ctx) {
+    if (!ctx || isnan(factor) || isinf(factor)) {
         return false;
     }
     

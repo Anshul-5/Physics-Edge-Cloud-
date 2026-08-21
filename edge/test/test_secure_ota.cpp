@@ -159,6 +159,7 @@ static int test_secure_ota_valid(EVP_PKEY *pkey, const char *pub_key_pem) {
 
 // Test 2: Invalid Magic bytes fails verification
 static int test_secure_ota_invalid_magic(EVP_PKEY *pkey, const char *pub_key_pem) {
+    (void)pub_key_pem;
     uint8_t payload[] = "Some data.";
     uint32_t payload_len = sizeof(payload);
     uint8_t *image_data = NULL;

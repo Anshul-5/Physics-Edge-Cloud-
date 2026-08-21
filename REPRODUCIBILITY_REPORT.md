@@ -9,7 +9,7 @@ This document provides a cryptographic and test-validation transcript of the phy
 - **Architecture:** arm64
 - **Compiler Version:** Apple clang version 17.0.0 (clang-1700.6.4.2)
 - **Python Version:** 3.9.6
-- **Verification Timestamp:** 2026-08-21 18:05:55 UTC
+- **Verification Timestamp:** 2026-08-21 18:42:41 UTC
 
 ---
 
@@ -17,14 +17,15 @@ This document provides a cryptographic and test-validation transcript of the phy
 
 | Component Layer | Compilation | Tests Passed | Tests Failed | Execution Latency | Status |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **Downscaler** | ✓ Success | 5 | 0 | 260.644 ms | 🟢 PASS |
-| **Optical Flow** | ✓ Success | 7 | 0 | 303.099 ms | 🟢 PASS |
-| **Homography** | ✓ Success | 10 | 0 | 179.775 ms | 🟢 PASS |
-| **Secure OTA** | ✓ Success | 8 | 0 | 506.157 ms | 🟢 PASS |
+| **Downscaler** | ✓ Success | 5 | 0 | 315.898 ms | 🟢 PASS |
+| **Optical Flow** | ✓ Success | 7 | 0 | 272.396 ms | 🟢 PASS |
+| **Homography** | ✓ Success | 10 | 0 | 1101.185 ms | 🟢 PASS |
+| **Jerk Baseline** | ✓ Success | 1 | 0 | 199.452 ms | 🟢 PASS |
+| **Secure OTA** | ✓ Success | 8 | 0 | 207.524 ms | 🟢 PASS |
 
 ### Overall Verification Summary: **PASSED**
-- **Total Test Cases Executed:** 30
-- **Total Passed:** 30
+- **Total Test Cases Executed:** 31
+- **Total Passed:** 31
 - **Total Failed:** 0
 
 ---
@@ -72,6 +73,13 @@ PASS test_ewma_smoothing
 PASS test_null_inputs
 
 === Results: 0 failures ===
+```
+
+### Jerk Baseline Unit Test Log
+```text
+Running jerk baseline tests...
+Single spike handled correctly (surprise=237.24)
+PASS: Jerk Baseline Tests
 ```
 
 ### Secure OTA Unit Test Log

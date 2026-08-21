@@ -59,3 +59,40 @@ def test_mqtt_broadcaster():
     assert topic == f"physedge/devices/{str(camera_id)}/constraints"
     assert "nc-test" in serialized
     assert len(broadcaster.published_messages) == 1
+
+
+def test_adjudication_exporter_invalid_uuid():
+    exporter = AdjudicationExporter()
+    with pytest.raises(ValueError, match="Invalid camera_uuid format."):
+        exporter.export_false_positive(12345)
+
+
+def test_constraint_rate_limiter_camera_isolation():
+    limiter = ConstraintRateLimiter()
+    cam_a = uuid.uuid4()
+    cam_b = uuid.uuid4()
+    
+    assert limiter.is_adjustment_allowed(cam_a, 1.10)
+    limiter.record_adjustment(cam_a, 1.10)
+    assert limiter.is_adjustment_allowed(cam_a, 1.10)
+    limiter.record_adjustment(cam_a, 1.10)
+    assert not limiter.is_adjustment_allowed(cam_a, 1.10)
+    
+    assert limiter.is_adjustment_allowed(cam_b, 1.10)
+    limiter.record_adjustment(cam_b, 1.10)
+    assert limiter.is_adjustment_allowed(cam_b, 1.10)
+
+
+def test_constraint_rate_limiter_sliding_window(monkeypatch):
+    import time
+    limiter = ConstraintRateLimiter()
+    camera_id = uuid.uuid4()
+    
+    current_time = time.time()
+    assert limiter.is_adjustment_allowed(camera_id, 1.20)
+    limiter.record_adjustment(camera_id, 1.20)
+    
+    # Simulate 25 hours passing (90,000 seconds)
+    monkeypatch.setattr(time, "time", lambda: current_time + 90000)
+    
+    assert limiter.is_adjustment_allowed(camera_id, 1.20)
