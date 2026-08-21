@@ -244,6 +244,47 @@ bool homography_compute_motion_energy(homography_ctx_t *block_trackers[],
     return true;
 }
 
+bool homography_compute_ttc(float x1_m, float y1_m, float vx1_mps, float vy1_mps,
+                            float x2_m, float y2_m, float vx2_mps, float vy2_mps,
+                            float *out_ttc_sec)
+{
+    if (!out_ttc_sec) {
+        return false;
+    }
+
+    if (isnan(x1_m) || isinf(x1_m) || isnan(y1_m) || isinf(y1_m) ||
+        isnan(vx1_mps) || isinf(vx1_mps) || isnan(vy1_mps) || isinf(vy1_mps) ||
+        isnan(x2_m) || isinf(x2_m) || isnan(y2_m) || isinf(y2_m) ||
+        isnan(vx2_mps) || isinf(vx2_mps) || isnan(vy2_mps) || isinf(vy2_mps)) {
+        *out_ttc_sec = 999.0f;
+        return false;
+    }
+
+    float rx = x1_m - x2_m;
+    float ry = y1_m - y2_m;
+    float dist = sqrtf(rx * rx + ry * ry);
+
+    if (dist < 1e-4f) {
+        *out_ttc_sec = 0.0f;
+        return true;
+    }
+
+    float r_vx = vx1_mps - vx2_mps;
+    float r_vy = vy1_mps - vy2_mps;
+
+    float convergence_speed = -(rx * r_vx + ry * r_vy) / dist;
+
+    // Division-by-zero & divergence guard:
+    // If convergence speed <= epsilon (diverging or parallel), TTC is safely clamped to 999.0f
+    if (convergence_speed <= 1e-4f) {
+        *out_ttc_sec = 999.0f;
+    } else {
+        *out_ttc_sec = dist / convergence_speed;
+    }
+
+    return true;
+}
+
 void homography_deinit(homography_ctx_t *ctx)
 {
     free(ctx);

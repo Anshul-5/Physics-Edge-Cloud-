@@ -181,6 +181,24 @@ bool homography_compute_motion_energy(homography_ctx_t *block_trackers[],
                                       float *out_energy);
 
 /**
+ * @brief Compute Time-to-Collision (TTC) proxy between two entities on the ground plane.
+ *
+ * @param x1_m       Entity 1 X (meters)
+ * @param y1_m       Entity 1 Y (meters)
+ * @param vx1_mps    Entity 1 velocity X (m/s)
+ * @param vy1_mps    Entity 1 velocity Y (m/s)
+ * @param x2_m       Entity 2 X (meters)
+ * @param y2_m       Entity 2 Y (meters)
+ * @param vx2_mps    Entity 2 velocity X (m/s)
+ * @param vy2_mps    Entity 2 velocity Y (m/s)
+ * @param out_ttc_sec Pointer to store computed TTC in seconds (999.0f if diverging/parallel)
+ * @return true on valid inputs, false on null pointer
+ */
+bool homography_compute_ttc(float x1_m, float y1_m, float vx1_mps, float vy1_mps,
+                            float x2_m, float y2_m, float vx2_mps, float vy2_mps,
+                            float *out_ttc_sec);
+
+/**
  * @brief Deinitialize and free the homography projector
  *
  * @param ctx Context handle
