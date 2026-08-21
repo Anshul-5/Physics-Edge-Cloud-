@@ -41,6 +41,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - docs: update changelog [skip ci] ([dfc9684](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/dfc9684814dcd97602fe4008a15ba48d03ad3e80)) @github-actions[bot]
 
 ### Changed
+- Merge pull request #104 from archittmittal/feat/l7-privacy-dp-laplace
+
+feat: implement coordinate coarsening & Laplace Differential Privacy ([a9cad93](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/a9cad9375116c5a5ac0946230f4eb07ef6401fe5)) @Purvansh Joshi
 - Merge pull request #102 from archittmittal/feat/l4-orchestrator-l5-drift-tracker
 
 feat: implement L4 Compute Router & L5 Input Drift Tracker ([78d4b2c](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/78d4b2c88f5fd4407283d2e66cf38f7011fed51d)) @Purvansh Joshi
