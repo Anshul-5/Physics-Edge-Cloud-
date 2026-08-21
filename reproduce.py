@@ -178,7 +178,7 @@ python3 reproduce.py
 This verification suite compiles raw C source files with maximum compiler optimization (`-O3`) to simulate actual deployment execution times, verifying the kinematics mathematical pipelines.
 """
     
-    with open(report_path, "w") as f:
+    with open(report_path, "w", encoding="utf-8") as f:
         f.write(markdown)
     
     print(f"[*] Reproducibility report written successfully to: {report_path}")
