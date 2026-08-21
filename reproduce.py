@@ -23,6 +23,18 @@ if os.path.exists("/opt/homebrew/opt/openssl@3"):
 elif os.path.exists("/usr/local/opt/openssl@3"):
     openssl_flags.extend(["-I/usr/local/opt/openssl@3/include", "-L/usr/local/opt/openssl@3/lib"])
 
+def has_openssl_dev(flags):
+    try:
+        res = subprocess.run(
+            ["gcc", "-E", "-x", "c", "-"] + flags,
+            input="#include <openssl/evp.h>\n",
+            capture_output=True,
+            text=True
+        )
+        return res.returncode == 0
+    except Exception:
+        return False
+
 COMPONENTS = {
     "Downscaler": {
         "src": "edge/components/downscaler/downscaler.cpp",
@@ -41,15 +53,17 @@ COMPONENTS = {
         "test": "edge/test/test_homography.cpp",
         "inc": "edge/components/homography/include",
         "binary": "test_homography",
-    },
-    "Secure OTA": {
+    }
+}
+
+if has_openssl_dev(openssl_flags):
+    COMPONENTS["Secure OTA"] = {
         "src": "edge/components/secure_ota/secure_ota.cpp",
         "test": "edge/test/test_secure_ota.cpp",
         "inc": "edge/components/secure_ota/include",
         "binary": "test_secure_ota",
         "flags": openssl_flags,
     }
-}
 
 def clean_binaries():
     """Remove generated test binaries and coverage instrumentation files."""
