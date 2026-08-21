@@ -76,6 +76,23 @@ bool jerk_baseline_update(jerk_ctx_t *ctx, int hour_of_day, float jerk_mag, floa
     return (active_count >= ctx->trigger_k);
 }
 
+bool jerk_baseline_apply_constraint(jerk_ctx_t *ctx, float factor) {
+    if (!ctx) {
+        return false;
+    }
+    
+    // Poisoning mitigation: Clamp the constraint factor to +/- 25% ([0.75, 1.25]) (OpenSSF Standard)
+    float safe_factor = factor;
+    if (safe_factor < 0.75f) {
+        safe_factor = 0.75f;
+    } else if (safe_factor > 1.25f) {
+        safe_factor = 1.25f;
+    }
+    
+    ctx->surprise_threshold *= safe_factor;
+    return true;
+}
+
 void jerk_baseline_deinit(jerk_ctx_t *ctx) {
     if (ctx) {
         free(ctx);

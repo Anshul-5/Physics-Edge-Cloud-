@@ -34,6 +34,12 @@ COMPONENTS = {
         "test": "edge/test/test_homography.cpp",
         "inc": "edge/components/homography/include",
         "binary": "test_homography",
+    },
+    "Jerk Baseline": {
+        "src": "edge/components/jerk_baseline/jerk_baseline.cpp",
+        "test": "edge/test/test_jerk_baseline.cpp",
+        "inc": "edge/components/jerk_baseline/include",
+        "binary": "test_jerk_baseline",
     }
 }
 
@@ -67,6 +73,8 @@ def compile_and_run(name, info):
         "-o", info["binary"],
         "-lm"
     ]
+    if "flags" in info:
+        compile_cmd.extend(info["flags"])
     
     comp_start = time.perf_counter()
     compile_res = subprocess.run(compile_cmd, capture_output=True, text=True)

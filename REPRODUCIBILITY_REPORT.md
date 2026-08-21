@@ -5,11 +5,11 @@ This document provides a cryptographic and test-validation transcript of the phy
 ---
 
 ## 💻 System Configuration & Environment
-- **Operating System:** Windows (11)
-- **Architecture:** AMD64
-- **Compiler Version:** gcc (MinGW.org GCC-6.3.0-1) 6.3.0
-- **Python Version:** 3.13.14
-- **Verification Timestamp:** 2026-08-21 18:01:58 UTC
+- **Operating System:** Darwin (25.5.0)
+- **Architecture:** arm64
+- **Compiler Version:** Apple clang version 17.0.0 (clang-1700.6.4.2)
+- **Python Version:** 3.9.6
+- **Verification Timestamp:** 2026-08-21 18:18:05 UTC
 
 ---
 
@@ -17,13 +17,14 @@ This document provides a cryptographic and test-validation transcript of the phy
 
 | Component Layer | Compilation | Tests Passed | Tests Failed | Execution Latency | Status |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **Downscaler** | ✓ Success | 5 | 0 | 588.817 ms | 🟢 PASS |
-| **Optical Flow** | ✓ Success | 7 | 0 | 925.738 ms | 🟢 PASS |
-| **Homography** | ✓ Success | 10 | 0 | 266.463 ms | 🟢 PASS |
+| **Downscaler** | ✓ Success | 5 | 0 | 214.134 ms | 🟢 PASS |
+| **Optical Flow** | ✓ Success | 7 | 0 | 160.432 ms | 🟢 PASS |
+| **Homography** | ✓ Success | 10 | 0 | 243.983 ms | 🟢 PASS |
+| **Jerk Baseline** | ✓ Success | 1 | 0 | 333.321 ms | 🟢 PASS |
 
 ### Overall Verification Summary: **PASSED**
-- **Total Test Cases Executed:** 22
-- **Total Passed:** 22
+- **Total Test Cases Executed:** 23
+- **Total Passed:** 23
 - **Total Failed:** 0
 
 ---
@@ -71,6 +72,13 @@ PASS test_ewma_smoothing
 PASS test_null_inputs
 
 === Results: 0 failures ===
+```
+
+### Jerk Baseline Unit Test Log
+```text
+Running jerk baseline tests...
+Single spike handled correctly (surprise=237.24)
+PASS: Jerk Baseline Tests
 ```
 
 
