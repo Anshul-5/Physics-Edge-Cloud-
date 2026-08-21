@@ -43,9 +43,10 @@ COMPONENTS = {
         "binary": "test_downscaler",
     },
     "Optical Flow": {
-        "src": "edge/components/optical_flow/optical_flow.cpp",
+        "src": ["edge/components/optical_flow/optical_flow.cpp", "edge/components/homography/homography.cpp"],
         "test": "edge/test/test_optical_flow.cpp",
         "inc": "edge/components/optical_flow/include",
+        "extra_inc": ["edge/components/homography/include"],
         "binary": "test_optical_flow",
     },
     "Homography": {
@@ -95,12 +96,22 @@ def compile_and_run(name, info):
     # 1. Compile Command
     compile_cmd = [
         "g++", "-O3", "--std=c++17",
-        f"-I{info['inc']}",
-        info["src"],
+        f"-I{info['inc']}"
+    ]
+    if "extra_inc" in info:
+        for inc in info["extra_inc"]:
+            compile_cmd.append(f"-I{inc}")
+            
+    if isinstance(info["src"], list):
+        compile_cmd.extend(info["src"])
+    else:
+        compile_cmd.append(info["src"])
+        
+    compile_cmd.extend([
         info["test"],
         "-o", info["binary"],
         "-lm"
-    ]
+    ])
     if "flags" in info:
         compile_cmd.extend(info["flags"])
     

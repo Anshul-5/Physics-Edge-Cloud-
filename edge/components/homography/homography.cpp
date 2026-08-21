@@ -14,6 +14,7 @@
 
 #include <stdlib.h>
 #include <limits.h>
+#include <math.h>
 
 /** Denominator magnitude (Q16.16) below which a projection is degenerate.
  *  ~1e-6 in real terms as specified by the calibration guard. */
@@ -147,6 +148,98 @@ bool homography_kinematics_update(homography_ctx_t *ctx,
     ctx->prev_ax = sm_ax;
     ctx->prev_ay = sm_ay;
     ctx->has_prev = true;
+
+    return true;
+}
+
+#define HOM_GRID_COLS      10
+#define HOM_GRID_ROWS      7
+#define HOM_MB_SIZE        16
+
+bool homography_compute_motion_energy(homography_ctx_t *block_trackers[],
+                                      const int8_t *dx_vals,
+                                      const int8_t *dy_vals,
+                                      const uint8_t *confidences,
+                                      uint32_t num_blocks,
+                                      int64_t dt_us,
+                                      float lambda1, float lambda2, float lambda3,
+                                      float v_ref, float a_ref, float j_ref,
+                                      float *out_energy)
+{
+    if (!block_trackers || !dx_vals || !dy_vals || !confidences || !out_energy || dt_us <= 0 || num_blocks == 0) {
+        return false;
+    }
+    
+    // Check references to prevent division by zero
+    if (v_ref <= 0.0f || a_ref <= 0.0f || j_ref <= 0.0f) {
+        return false;
+    }
+
+    float numerator = 0.0f;
+    float denominator = 0.0f;
+
+    for (uint32_t i = 0; i < num_blocks; i++) {
+        uint8_t w = confidences[i];
+        if (w == 0) {
+            continue; // Skip textureless/low confidence blocks
+        }
+
+        // Calculate block center (current coordinates)
+        int32_t col = i % HOM_GRID_COLS;
+        int32_t row = i / HOM_GRID_COLS;
+        
+        int32_t curr_x = col * HOM_MB_SIZE + HOM_MB_SIZE / 2;
+        int32_t curr_y = row * HOM_MB_SIZE + HOM_MB_SIZE / 2;
+        
+        // Previous position based on optical flow displacement
+        int32_t prev_x = curr_x - dx_vals[i];
+        int32_t prev_y = curr_y - dy_vals[i];
+
+        Kinematics kin;
+        bool valid = homography_kinematics_update(block_trackers[i], curr_x, curr_y, prev_x, prev_y, dt_us, &kin, NULL);
+        if (!valid) {
+            continue; // Skip invalid projections
+        }
+
+        // Convert Q16.16 fixed-point metrics back to floats
+        float vx = hom_fp_to_float(kin.vx);
+        float vy = hom_fp_to_float(kin.vy);
+        float ax = hom_fp_to_float(kin.ax);
+        float ay = hom_fp_to_float(kin.ay);
+        float jx = hom_fp_to_float(kin.jx);
+        float jy = hom_fp_to_float(kin.jy);
+
+        // Check for NaN and Inf from calculations
+        if (isnan(vx) || isinf(vx) || isnan(vy) || isinf(vy) ||
+            isnan(ax) || isinf(ax) || isnan(ay) || isinf(ay) ||
+            isnan(jx) || isinf(jx) || isnan(jy) || isinf(jy)) {
+            continue;
+        }
+
+        float v_norm_sq = vx * vx + vy * vy;
+        float a_norm_sq = ax * ax + ay * ay;
+        float j_norm_sq = jx * jx + jy * jy;
+
+        // Non-dimensionalized score term for block i
+        float term = lambda1 * (v_norm_sq / (v_ref * v_ref)) +
+                     lambda2 * (a_norm_sq / (a_ref * a_ref)) +
+                     lambda3 * (j_norm_sq / (j_ref * j_ref));
+
+        // Safeguard against NaN/Inf terms
+        if (isnan(term) || isinf(term)) {
+            continue;
+        }
+
+        numerator += (float)w * term;
+        denominator += (float)w;
+    }
+
+    // Guard against division by zero (e.g. if all confidences are zero)
+    if (denominator <= 0.0f) {
+        *out_energy = 0.0f;
+    } else {
+        *out_energy = numerator / denominator;
+    }
 
     return true;
 }

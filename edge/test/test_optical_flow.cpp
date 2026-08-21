@@ -11,6 +11,7 @@
 #include <string.h>
 #include <math.h>
 #include "optical_flow.h"
+#include "homography.h"
 
 /** Helper: fill frame with uniform value */
 static void fill_frame(uint8_t *frame, uint8_t val) {
@@ -219,6 +220,102 @@ static int test_num_blocks(void) {
     return 0;
 }
 
+static int test_motion_energy(void) {
+    // Initialize 70 homography trackers (since GRID_COLS=10, GRID_ROWS=7)
+    // We will use a standard identity homography matrix for simplicity
+    float h_norm[9] = {
+        1.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 1.0f
+    };
+
+    homography_ctx_t *trackers[NUM_BLOCKS];
+    for (int i = 0; i < NUM_BLOCKS; i++) {
+        trackers[i] = homography_init(h_norm);
+        if (!trackers[i]) {
+            printf("FAIL: failed to init homography tracker %d\n", i);
+            return 1;
+        }
+    }
+
+    int8_t dx[NUM_BLOCKS];
+    int8_t dy[NUM_BLOCKS];
+    uint8_t confidence[NUM_BLOCKS];
+
+    // Scenario 1: Stationary blocks (dx=0, dy=0) with some confidence
+    for (int i = 0; i < NUM_BLOCKS; i++) {
+        dx[i] = 0;
+        dy[i] = 0;
+        confidence[i] = 100; // All confident
+    }
+
+    // First frame (dt = 40ms, i.e. 40,000 us) to seed tracking
+    float energy = -1.0f;
+    bool ok = homography_compute_motion_energy(
+        trackers, dx, dy, confidence, NUM_BLOCKS, 40000,
+        1.0f, 0.0f, 0.0f, // lambda1=1.0, others 0
+        1.0f, 1.0f, 1.0f, // refs = 1.0
+        &energy
+    );
+    
+    // First frame velocity is computed, but let's check it is 0
+    if (!ok || energy < -1e-4f || energy > 1e-4f) {
+        printf("FAIL: expected 0 energy for stationary blocks on first frame, got %f (ok=%d)\n", energy, ok);
+        for (int j = 0; j < NUM_BLOCKS; j++) homography_deinit(trackers[j]);
+        return 1;
+    }
+
+    // Second frame: constant displacement dx = 2 pixels for all blocks
+    // With identity homography, 1 pixel = 1 meter. So displacement is 2 meters.
+    // dt = 40ms (0.04s). Velocity = 2 / 0.04 = 50 m/s.
+    // With EMA alpha = 1/3 (HOM_EMA_ALPHA = 21845):
+    // v_smoothed = (1/3) * 50 + (2/3) * 0 = 16.66667 m/s.
+    // v_ref = 10.0f. So term = (16.66667)^2 / (10.0f)^2 = 277.7778 / 100 = 2.77778.
+    // Expected energy = 2.77778.
+    for (int i = 0; i < NUM_BLOCKS; i++) {
+        dx[i] = 2;
+        dy[i] = 0;
+    }
+
+    ok = homography_compute_motion_energy(
+        trackers, dx, dy, confidence, NUM_BLOCKS, 40000,
+        1.0f, 0.0f, 0.0f, // lambda1=1.0, others 0
+        10.0f, 1.0f, 1.0f, // v_ref = 10.0
+        &energy
+    );
+
+    float expected_energy = 2.77778f;
+    if (!ok || fabsf(energy - expected_energy) > 0.05f) {
+        printf("FAIL: expected energy ~%f, got %f\n", expected_energy, energy);
+        for (int j = 0; j < NUM_BLOCKS; j++) homography_deinit(trackers[j]);
+        return 1;
+    }
+
+    // Scenario 2: Test division by zero safeguard (all confidence = 0)
+    for (int i = 0; i < NUM_BLOCKS; i++) {
+        confidence[i] = 0;
+    }
+    ok = homography_compute_motion_energy(
+        trackers, dx, dy, confidence, NUM_BLOCKS, 40000,
+        1.0f, 1.0f, 1.0f,
+        10.0f, 1.0f, 1.0f,
+        &energy
+    );
+    if (!ok || energy != 0.0f) {
+        printf("FAIL: expected division-by-zero safeguard to return 0.0f, got %f (ok=%d)\n", energy, ok);
+        for (int j = 0; j < NUM_BLOCKS; j++) homography_deinit(trackers[j]);
+        return 1;
+    }
+
+    // Clean up
+    for (int i = 0; i < NUM_BLOCKS; i++) {
+        homography_deinit(trackers[i]);
+    }
+
+    printf("PASS test_motion_energy\n");
+    return 0;
+}
+
 int main(void) {
     printf("=== Optical Flow Unit Tests ===\n");
     int failures = 0;
@@ -230,6 +327,7 @@ int main(void) {
     failures += test_textured_confidence();
     failures += test_null_inputs();
     failures += test_num_blocks();
+    failures += test_motion_energy();
 
     printf("\n=== Results: %d failures ===\n", failures);
     return failures;

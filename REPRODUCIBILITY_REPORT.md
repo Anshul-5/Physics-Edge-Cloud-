@@ -9,7 +9,7 @@ This document provides a cryptographic and test-validation transcript of the phy
 - **Architecture:** arm64
 - **Compiler Version:** Apple clang version 17.0.0 (clang-1700.6.4.2)
 - **Python Version:** 3.9.6
-- **Verification Timestamp:** 2026-08-21 18:25:00 UTC
+- **Verification Timestamp:** 2026-08-21 18:57:56 UTC
 
 ---
 
@@ -17,15 +17,15 @@ This document provides a cryptographic and test-validation transcript of the phy
 
 | Component Layer | Compilation | Tests Passed | Tests Failed | Execution Latency | Status |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **Downscaler** | ✓ Success | 5 | 0 | 260.644 ms | 🟢 PASS |
-| **Optical Flow** | ✓ Success | 7 | 0 | 303.099 ms | 🟢 PASS |
-| **Homography** | ✓ Success | 10 | 0 | 179.775 ms | 🟢 PASS |
-| **Jerk Baseline** | ✓ Success | 1 | 0 | 333.321 ms | 🟢 PASS |
-| **Secure OTA** | ✓ Success | 8 | 0 | 506.157 ms | 🟢 PASS |
+| **Downscaler** | ✓ Success | 5 | 0 | 535.571 ms | 🟢 PASS |
+| **Optical Flow** | ✓ Success | 8 | 0 | 517.689 ms | 🟢 PASS |
+| **Homography** | ✓ Success | 10 | 0 | 551.557 ms | 🟢 PASS |
+| **Jerk Baseline** | ✓ Success | 1 | 0 | 476.499 ms | 🟢 PASS |
+| **Secure OTA** | ✓ Success | 8 | 0 | 488.672 ms | 🟢 PASS |
 
 ### Overall Verification Summary: **PASSED**
-- **Total Test Cases Executed:** 31
-- **Total Passed:** 31
+- **Total Test Cases Executed:** 32
+- **Total Passed:** 32
 - **Total Failed:** 0
 
 ---
@@ -54,6 +54,7 @@ PASS test_textureless_confidence
 PASS test_textured_confidence
 PASS test_null_inputs
 PASS test_num_blocks
+PASS test_motion_energy
 
 === Results: 0 failures ===
 ```
@@ -75,13 +76,13 @@ PASS test_null_inputs
 === Results: 0 failures ===
 ```
 
-<<<<<<< HEAD
 ### Jerk Baseline Unit Test Log
 ```text
 Running jerk baseline tests...
 Single spike handled correctly (surprise=237.24)
 PASS: Jerk Baseline Tests
-=======
+```
+
 ### Secure OTA Unit Test Log
 ```text
 === Secure OTA Unit Tests ===
@@ -95,7 +96,6 @@ PASS test_secure_ota_bounds
 PASS test_secure_ota_null_params
 
 === Results: 0 failures ===
->>>>>>> origin/main
 ```
 
 
