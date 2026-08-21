@@ -5,11 +5,11 @@ This document provides a cryptographic and test-validation transcript of the phy
 ---
 
 ## 💻 System Configuration & Environment
-- **Operating System:** Darwin (25.5.0)
-- **Architecture:** arm64
-- **Compiler Version:** Apple clang version 17.0.0 (clang-1700.6.4.2)
-- **Python Version:** 3.9.6
-- **Verification Timestamp:** 2026-08-21 16:40:58 UTC
+- **Operating System:** Windows (11)
+- **Architecture:** AMD64
+- **Compiler Version:** gcc (MinGW.org GCC-6.3.0-1) 6.3.0
+- **Python Version:** 3.13.14
+- **Verification Timestamp:** 2026-08-21 17:39:57 UTC
 
 ---
 
@@ -17,9 +17,9 @@ This document provides a cryptographic and test-validation transcript of the phy
 
 | Component Layer | Compilation | Tests Passed | Tests Failed | Execution Latency | Status |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **Downscaler** | ✓ Success | 5 | 0 | 552.769 ms | 🟢 PASS |
-| **Optical Flow** | ✓ Success | 7 | 0 | 451.035 ms | 🟢 PASS |
-| **Homography** | ✓ Success | 10 | 0 | 455.529 ms | 🟢 PASS |
+| **Downscaler** | ✓ Success | 5 | 0 | 337.142 ms | 🟢 PASS |
+| **Optical Flow** | ✓ Success | 7 | 0 | 835.314 ms | 🟢 PASS |
+| **Homography** | ✓ Success | 10 | 0 | 102.694 ms | 🟢 PASS |
 
 ### Overall Verification Summary: **PASSED**
 - **Total Test Cases Executed:** 22
