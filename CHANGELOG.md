@@ -14,6 +14,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Implemented Champion/Challenger Model Promotion Pipeline with bootstrap significance gating and Model Registry for L7 Retraining (#26)
 - Implemented Progressive Canary Rollout Scheduler with hashing-based fleet partitioning for L8 Delivery (#28)
 - Implemented SPRT False Alarm Rate Rollback Controller for automated canary safety monitoring for L8 Delivery (#29)
+- Implemented Secure Boot ECDSA signature verification and anti-rollback checks for L9 OTA updates (#25)
 - Implemented Grid Coordinate Coarsening and Laplace Differential Privacy for security/privacy obfuscation (#24)
 - Implemented PostgreSQL pgvector schema setup, HNSW indexes, and similarity search client for L6 Storage (#22)
 - Implemented Forensic Cryptographic Merkle Log Hash Chain with block serialization and consistency validation checks for L6 Storage (#23)
