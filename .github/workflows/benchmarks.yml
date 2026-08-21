@@ -122,27 +122,39 @@ jobs:
             
             <sub>Benchmark run: ${new Date().toISOString()}</sub>`;
             
-            // Find existing comment to update
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-            });
-            
-            const existing = comments.find(c => c.body.includes('Performance Benchmark Results'));
-            
-            if (existing) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existing.id,
-                body: body
-              });
-            } else {
-              await github.rest.issues.createComment({
+            // 1. Write to Step Summary (works on fork PRs)
+            try {
+              core.summary.addRaw(body).write();
+            } catch (err) {
+              console.log("Unable to write step summary:", err.message);
+            }
+
+            // 2. Attempt to comment on the PR (fails on fork PRs due to write permissions)
+            try {
+              const { data: comments } = await github.rest.issues.listComments({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
-                body: body
               });
+              
+              const existing = comments.find(c => c.body.includes('Performance Benchmark Results'));
+              
+              if (existing) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existing.id,
+                  body: body
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  body: body
+                });
+              }
+            } catch (err) {
+              console.log("Unable to post PR comment (likely due to fork permissions):", err.message);
             }
+
