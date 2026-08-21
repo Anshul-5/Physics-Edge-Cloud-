@@ -2,18 +2,19 @@ name: Benchmarks
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'feat/**', 'fix/**']
   pull_request:
-    branches: [main]
+    branches: [main, 'feat/**', 'fix/**']
 
 permissions:
   contents: read
   pull-requests: write
+  issues: write
 
 jobs:
   benchmark:
     name: Performance Benchmarks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v7
 
@@ -122,11 +123,13 @@ jobs:
             
             <sub>Benchmark run: ${new Date().toISOString()}</sub>`;
             
+            const prNumber = context.payload.pull_request ? context.payload.pull_request.number : context.issue.number;
+            
             // Find existing comment to update
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: context.issue.number,
+              issue_number: prNumber,
             });
             
             const existing = comments.find(c => c.body.includes('Performance Benchmark Results'));
@@ -142,7 +145,7 @@ jobs:
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                issue_number: context.issue.number,
+                issue_number: prNumber,
                 body: body
               });
             }

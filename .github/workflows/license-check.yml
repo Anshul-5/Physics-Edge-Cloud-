@@ -2,9 +2,9 @@ name: License Compliance
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'feat/**', 'fix/**']
   pull_request:
-    branches: [main]
+    branches: [main, 'feat/**', 'fix/**']
 
 jobs:
   license-check:
@@ -17,7 +17,7 @@ jobs:
         run: |
           echo "Checking license headers in source files..."
           MISSING=0
-          for f in $(find edge/components edge/main -name '*.c' -o -name '*.h'); do
+          for f in $(find edge/components edge/main -name '*.c' -o -name '*.cpp' -o -name '*.h'); do
             if ! head -5 "$f" | grep -q "Apache License\|SPDX-License-Identifier\|Licensed under"; then
               echo "MISSING LICENSE: $f"
               MISSING=$((MISSING + 1))

@@ -2,7 +2,7 @@ name: Changelog Validation
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, 'feat/**', 'fix/**']
 
 jobs:
   validate:
