@@ -9,6 +9,10 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 ### Added
 - Implemented Grid Coordinate Coarsening and Laplace Differential Privacy for security/privacy obfuscation (#24)
+- Implemented PostgreSQL pgvector schema setup, HNSW indexes, and similarity search client for L6 Storage (#22)
+- Implemented Forensic Cryptographic Merkle Log Hash Chain with block serialization and consistency validation checks for L6 Storage (#23)
+- Implemented Feature KL-Divergence Input Drift Tracker with rolling histogram compilation and Prometheus metrics for L5 Registry (#21)
+- Implemented Cost-Risk Lagrangian Compute Router and connection telemetry outage fallback for L4 Orchestrator (#20)
 - Implemented Precision-Weighted Risk Opinion Pool (CROP) with variance tracking for L3 Engine (#18)
 - Implemented Time-Adaptive Conformal Prediction Coverage and alert boundaries for L3 Engine (#19)
 - Added Graph Laplacian Fiedler eigenvalue and spectral instability calculations to SpatialGraphEngine (#3)
@@ -36,6 +40,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - docs: update changelog [skip ci] ([dfc9684](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/dfc9684814dcd97602fe4008a15ba48d03ad3e80)) @github-actions[bot]
 
 ### Changed
+- Merge pull request #102 from archittmittal/feat/l4-orchestrator-l5-drift-tracker
+
+feat: implement L4 Compute Router & L5 Input Drift Tracker ([78d4b2c](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/78d4b2c88f5fd4407283d2e66cf38f7011fed51d)) @Purvansh Joshi
 - Merge pull request #100 from Anshul-5/feat/openssf-security-hardening
 
 chore(security): apply comprehensive OpenSSF Scorecard hardening ([f5e7d9d](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/f5e7d9d0af61915195e7c5c7106b4f6864e8f5ef)) @Purvansh Joshi
