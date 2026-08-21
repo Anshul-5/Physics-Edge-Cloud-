@@ -8,6 +8,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 ### Added
+- Implemented PostgreSQL pgvector schema setup, HNSW indexes, and similarity search client for L6 Storage (#22)
+- Implemented Forensic Cryptographic Merkle Log Hash Chain with block serialization and consistency validation checks for L6 Storage (#23)
 - Implemented Feature KL-Divergence Input Drift Tracker with rolling histogram compilation and Prometheus metrics for L5 Registry (#21)
 - Implemented Cost-Risk Lagrangian Compute Router and connection telemetry outage fallback for L4 Orchestrator (#20)
 - Implemented Precision-Weighted Risk Opinion Pool (CROP) with variance tracking for L3 Engine (#18)
