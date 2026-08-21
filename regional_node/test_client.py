@@ -24,7 +24,11 @@ def run_test():
                 device_id="esp32_test_cam_01",
                 suspicion_probability=0.85, # Highly suspicious from ESP32
                 frame_jpg=img_bytes,
-                timestamp_ms=int(time.time() * 1000)
+                timestamp_ms=int(time.time() * 1000),
+                metric_frame=edge_uplink_pb2.MetricFrame(
+                    timestamp_ms=int(time.time() * 1000),
+                    motion_energy=12.34  # Mock calculated energy
+                )
             )
             time.sleep(0.5)
 

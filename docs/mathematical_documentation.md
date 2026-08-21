@@ -106,6 +106,19 @@ $$\Pi_t = \max\left(0, \frac{H_t - H_{t-1}}{\Delta t}\right) \cdot \left( \frac{
 
 ---
 
+### 2.5 Flow-Confidence-Weighted Motion Energy
+To calculate the overall motion activity level in the scene while accounting for optical flow confidence, we define a non-dimensionalized Motion Energy ($E$) score. The motion energy $E$ at time $t$ aggregates the kinetic terms (velocity, acceleration, and jerk) of each active flow block, weighted by their respective block confidence score $w_i$:
+
+$$E(t) = \frac{\sum_i w_i \left( \lambda_1 \frac{\|\mathbf{v}_{m,i}(t)\|_2^2}{v^2_{\text{ref}}} + \lambda_2 \frac{\|\mathbf{a}_{m,i}(t)\|_2^2}{a^2_{\text{ref}}} + \lambda_3 \frac{\|\mathbf{j}_{m,i}(t)\|_2^2}{j^2_{\text{ref}}} \right)}{\sum_i w_i}$$
+
+where:
+*   $w_i$: Optical flow block confidence score ($w_i \in [0, 255]$).
+*   $\mathbf{v}_{m,i}(t), \mathbf{a}_{m,i}(t), \mathbf{j}_{m,i}(t)$: Metric velocity ($m/s$), acceleration ($m/s^2$), and jerk ($m/s^3$) vectors of block $i$ on the ground plane.
+*   $v_{\text{ref}}, a_{\text{ref}}, j_{\text{ref}}$: Scaling/normalization constants used to ensure dimensional consistency.
+*   $\lambda_1, \lambda_2, \lambda_3$: Weighting hyperparameters.
+
+---
+
 ## 3. Layer 2: Regional Calibrated Fusion
 
 ### 3.1 Platt Calibration (Temperature Scaling)

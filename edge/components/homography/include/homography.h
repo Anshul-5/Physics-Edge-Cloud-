@@ -153,6 +153,34 @@ bool homography_kinematics_update(homography_ctx_t *ctx,
                                   int32_t *p_current_xm);
 
 /**
+ * @brief Compute the flow-confidence-weighted non-dimensionalized Motion Energy (E) score
+ *
+ * @param block_trackers Array of homography context pointers (one per macroblock)
+ * @param dx_vals        Array of horizontal displacements (pixels)
+ * @param dy_vals        Array of vertical displacements (pixels)
+ * @param confidences    Array of confidence scores (0-255)
+ * @param num_blocks     Number of macroblocks
+ * @param dt_us          Time difference in microseconds
+ * @param lambda1        Weight for velocity
+ * @param lambda2        Weight for acceleration
+ * @param lambda3        Weight for jerk
+ * @param v_ref          Velocity normalization reference constant
+ * @param a_ref          Acceleration normalization reference constant
+ * @param j_ref          Jerk normalization reference constant
+ * @param out_energy     Pointer to store output motion energy score
+ * @return true on success, false on invalid inputs or math errors
+ */
+bool homography_compute_motion_energy(homography_ctx_t *block_trackers[],
+                                      const int8_t *dx_vals,
+                                      const int8_t *dy_vals,
+                                      const uint8_t *confidences,
+                                      uint32_t num_blocks,
+                                      int64_t dt_us,
+                                      float lambda1, float lambda2, float lambda3,
+                                      float v_ref, float a_ref, float j_ref,
+                                      float *out_energy);
+
+/**
  * @brief Deinitialize and free the homography projector
  *
  * @param ctx Context handle

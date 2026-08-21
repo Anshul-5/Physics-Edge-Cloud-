@@ -8,6 +8,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 ### Added
+- Implemented flow-confidence-weighted non-dimensionalized Motion Energy (E) calculations on the L1 edge and integrated with L2 telemetry gRPC streaming (#115)
 - Implemented Closed-Loop Negative Constraints Pipeline, Edge Parameter Streamer, and L1 Jerk Baseline adjustment parser for L7 Retraining (#27)
 - Implemented Operations Alert Dispatcher, Prometheus Fleet Metrics, and Grafana Dashboard for L8/L9 Operations (#30)
 - Implemented ESP32-S3 OTA Secure Boot Anti-Rollback validation and signing utility for L9 Delivery (#25)

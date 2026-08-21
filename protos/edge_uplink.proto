@@ -7,6 +7,11 @@ message FlowVector {
     int32 dy = 2;
 }
 
+message MetricFrame {
+    uint64 timestamp_ms = 1;
+    float motion_energy = 2;
+}
+
 message EdgeTriggerPayload {
     uint64 timestamp_ms = 1;
     string device_id = 2;
@@ -16,4 +21,12 @@ message EdgeTriggerPayload {
     // Raw binary streams of the video frame and optical flow field
     bytes frame_jpg = 5;
     repeated FlowVector flow_field = 6;
+    
+    MetricFrame metric_frame = 7;
+}
+
+message Empty {}
+
+service EdgeUplink {
+    rpc StreamTelemetry (stream EdgeTriggerPayload) returns (Empty);
 }

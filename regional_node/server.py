@@ -87,6 +87,10 @@ class EdgeUplinkServicerImpl(edge_uplink_pb2_grpc.EdgeUplinkServicer):
 
     async def StreamTelemetry(self, request_iterator, context):
         async for payload in request_iterator:
+            energy_log = ""
+            if payload.HasField("metric_frame"):
+                energy_log = f" | Motion Energy: {payload.metric_frame.motion_energy:.2f}"
+            logger.info(f"Received telemetry stream from {payload.device_id}{energy_log}")
             self.processing_queue.put_payload(
                 device_id=payload.device_id,
                 suspicion=payload.suspicion_probability,
