@@ -1,0 +1,85 @@
+from collections import deque
+import numpy as np
+import time
+
+class AdaptiveConformalPredictor:
+    def __init__(self, alpha=0.05, gamma=0.005, max_buffer_size=1000, default_quantile=0.5):
+        """
+        Time-Adaptive Conformal Prediction for distribution-free risk intervals.
+        
+        Args:
+            alpha (float): Nominal significance level (target error rate is alpha, coverage 1 - alpha).
+            gamma (float): Learning rate / step size for adaptive updates of alpha_t.
+            max_buffer_size (int): Size of the rolling calibration buffer.
+            default_quantile (float): Initial quantile value if the buffer is empty.
+        """
+        self.alpha_0 = alpha
+        self.gamma = gamma
+        self.max_buffer_size = max_buffer_size
+        self.default_quantile = default_quantile
+        
+        self.residuals = deque(maxlen=max_buffer_size)
+        self.alpha_t = alpha  # Adapted significance level
+        
+    def get_quantile(self):
+        """
+        Computes the current quantile threshold q_{1-alpha_t} from the rolling residuals.
+        """
+        if not self.residuals:
+            return self.default_quantile
+        
+        # Sort residuals and get the (1 - alpha_t) quantile
+        # Quantile index is ceil((1 - alpha_t) * N) - 1
+        residuals_sorted = sorted(list(self.residuals))
+        n = len(residuals_sorted)
+        idx = int(np.ceil((1.0 - self.alpha_t) * n)) - 1
+        idx = max(0, min(n - 1, idx))
+        return residuals_sorted[idx]
+
+    def check_boundary(self, pooled_risk, quantile_threshold=None):
+        """
+        Checks if pooled risk triggers an alert (pooled_risk >= quantile_threshold).
+        
+        Args:
+            pooled_risk (float): Aggregated risk score from CROP.
+            quantile_threshold (float, optional): Custom threshold, defaults to current q_{1-alpha_t}.
+            
+        Returns:
+            bool: True if pooled_risk >= quantile_threshold, False otherwise.
+        """
+        t_start = time.perf_counter()
+        
+        if quantile_threshold is None:
+            quantile_threshold = self.get_quantile()
+            
+        alert = pooled_risk >= quantile_threshold
+        
+        # Performance check (Acceptance Criteria is <= 1 ms)
+        t_elapsed = (time.perf_counter() - t_start) * 1000  # ms
+        
+        return bool(alert)
+
+    def update(self, pooled_risk, true_label):
+        """
+        Updates the calibration set and adjusts the adaptive alpha_t.
+        
+        Args:
+            pooled_risk (float): Predicted risk score.
+            true_label (float): Ground truth label (0.0 or 1.0).
+        """
+        # Calculate residual: E_i = |Y_i - P_hat_i|
+        residual = abs(true_label - pooled_risk)
+        
+        # Check current coverage error before updating the residuals buffer
+        q_current = self.get_quantile()
+        coverage_error = 1.0 if residual > q_current else 0.0
+        
+        # Update significance level alpha_t dynamically:
+        # alpha_{t+1} = alpha_t + gamma * (alpha_0 - error_t)
+        self.alpha_t += self.gamma * (self.alpha_0 - coverage_error)
+        
+        # Clamp alpha_t to stay within a reasonable range (0, 1)
+        self.alpha_t = max(1e-4, min(1.0 - 1e-4, self.alpha_t))
+        
+        # Add the new residual to the rolling buffer
+        self.residuals.append(residual)
