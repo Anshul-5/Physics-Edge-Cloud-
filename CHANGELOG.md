@@ -35,6 +35,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - docs: update changelog [skip ci] ([dfc9684](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/dfc9684814dcd97602fe4008a15ba48d03ad3e80)) @github-actions[bot]
 
 ### Changed
+- Merge pull request #98 from Anshul-5/feat/phase3-cluster-a
+
+ci: fix benchmark PR commenting permissions, branch triggers, and wor… ([934c6a7](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/934c6a718ffa6274fd1a62bb34c5ed3f1b65e281)) @Purvansh Joshi
 - Merge pull request #97 from archittmittal/feat/l3-engine-crop-conformal-spectral
 
 feat: implement CROP, Conformal Prediction & Spectral Instability ([b36bff2](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/b36bff28efb62a4b48bfd13222dd9987a93e6de3)) @Purvansh Joshi
