@@ -4,10 +4,15 @@ on:
   pull_request:
     types: [opened, edited]
 
+permissions: read-all
+
 jobs:
   validate-version:
     name: Validate Version Bump
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - name: Check version bump in docs
         env:

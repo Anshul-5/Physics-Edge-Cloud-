@@ -4,14 +4,15 @@ on:
   pull_request:
     types: [opened, synchronize]
 
-permissions:
-  contents: read
-  pull-requests: read
+permissions: read-all
 
 jobs:
   size:
     name: Check PR Size
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - name: Size check
         uses: codelytv/pr-size-labeler@v1

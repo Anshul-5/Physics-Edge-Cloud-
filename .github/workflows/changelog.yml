@@ -4,6 +4,9 @@ on:
     workflows: [CI]
     types: [completed]
     branches: [main]
+
+permissions: read-all
+
 jobs:
   changelog:
     runs-on: ubuntu-latest

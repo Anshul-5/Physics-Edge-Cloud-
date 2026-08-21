@@ -7,13 +7,14 @@ on:
     branches: [main]
     types: [closed]
 
-permissions:
-  contents: write
+permissions: read-all
 
 jobs:
   track-history:
     name: Track Benchmark History
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     if: github.event_name == 'push' || (github.event.pull_request.merged == true)
     steps:
       - uses: actions/checkout@v7

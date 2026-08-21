@@ -1,5 +1,35 @@
-# Ignore document files
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# Compiled Executables & Libraries
+*.exe
+*.out
+*.app
+*.bin
+*.elf
+*.map
+*.a
+*.o
+
+# Build & Test Artifacts
+build/
+dist/
+*.sarif
+*.info
+*.gcov
+coverage/
+.coverage
+
+# Document files
 *.docx
 
-# Ignore local temporary/scratch scripts
+# Local temporary/scratch scripts
 scratch/
+bench_optical_flow.cpp
