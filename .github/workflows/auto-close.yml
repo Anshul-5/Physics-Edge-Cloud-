@@ -4,13 +4,14 @@ on:
   issue_comment:
     types: [created]
 
-permissions:
-  issues: write
+permissions: read-all
 
 jobs:
   close:
     name: Auto-close on Fix Keyword
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
     if: contains(github.event.comment.body, '#fix') || contains(github.event.comment.body, 'fixes #') || contains(github.event.comment.body, 'closes #')
     steps:
       - name: Extract and close issues

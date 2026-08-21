@@ -7,14 +7,15 @@ on:
   pull_request:
     branches: [main, 'feat/**', 'fix/**']
 
-permissions:
-  contents: write
-  security-events: write
+permissions: read-all
 
 jobs:
   sbom:
     name: Generate SBOM
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - uses: actions/checkout@v7
 

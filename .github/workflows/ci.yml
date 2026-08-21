@@ -9,6 +9,8 @@ on:
   pull_request:
     branches: [main, 'feat/**', 'fix/**']
 
+permissions: read-all
+
 jobs:
   # ============================================================
   # Job 1: Lint & Format Check

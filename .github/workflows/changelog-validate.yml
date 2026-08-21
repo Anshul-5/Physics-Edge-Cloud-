@@ -4,24 +4,29 @@ on:
   pull_request:
     branches: [main, 'feat/**', 'fix/**']
 
+permissions: read-all
+
 jobs:
   validate:
     name: Check Changelog Updated
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Check changelog was updated
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
-          BASE=${{ github.event.pull_request.base.sha }}
-          HEAD=${{ github.event.pull_request.head.sha }}
-          
-          if git diff --name-only $BASE $HEAD | grep -q "CHANGELOG.md"; then
+          if git diff --name-only "$BASE_SHA" "$HEAD_SHA" | grep -q "CHANGELOG.md"; then
             echo "CHANGELOG.md was updated"
           else
-            PR_TITLE="${{ github.event.pull_request.title }}"
             if echo "$PR_TITLE" | grep -qi "^docs:\|^ci:\|^chore:\|^test:"; then
               echo "No changelog update needed for this PR type"
             else

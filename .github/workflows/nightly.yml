@@ -5,13 +5,14 @@ on:
     - cron: '0 2 * * *'
   workflow_dispatch:
 
-permissions:
-  contents: write
+permissions: read-all
 
 jobs:
   build:
     name: Nightly Build
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v7
 

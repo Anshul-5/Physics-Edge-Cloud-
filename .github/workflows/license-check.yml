@@ -6,10 +6,14 @@ on:
   pull_request:
     branches: [main, 'feat/**', 'fix/**']
 
+permissions: read-all
+
 jobs:
   license-check:
     name: Check Licenses
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v7
 

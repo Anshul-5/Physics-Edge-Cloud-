@@ -9,20 +9,27 @@
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability within PhysEdge-Cloud, please send an email to the maintainers. All security vulnerabilities will be promptly addressed.
+If you discover a security vulnerability within PhysEdge-Cloud, please report it privately:
 
-### What to include
+1. **GitHub Security Advisory (Recommended):** Submit a private report via [GitHub Private Vulnerability Reporting](https://github.com/Anshul-5/Physics-Edge-Cloud-/security/advisories/new).
+2. **Email Disclosure:** Send an email with vulnerability details to `security@physedge.org` or to project maintainers.
 
-- Description of the vulnerability
-- Steps to reproduce
+Please do **NOT** file public GitHub issues for security vulnerabilities.
+
+### What to Include
+
+- Description and severity assessment of the vulnerability
+- Step-by-step instructions or proof-of-concept (PoC) to reproduce
+- Affected components (e.g., L1 ESP32 firmware, L2 Regional Node, L3 Cloud Engine)
 - Potential impact assessment
-- Suggested fix (if any)
+- Suggested mitigation or patch (if available)
 
 ### Response Timeline
 
 - **Acknowledgment**: Within 48 hours
-- **Initial assessment**: Within 1 week
-- **Fix or mitigation**: Within 30 days for critical issues
+- **Initial Assessment & Triage**: Within 7 business days
+- **Fix or Mitigation**: Within 30 days for critical/high vulnerabilities
+- **Public Disclosure**: Coordinated after fix deployment and release
 
 ## Security Considerations
 

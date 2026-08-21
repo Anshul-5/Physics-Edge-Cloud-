@@ -4,10 +4,15 @@ on:
   pull_request:
     branches: [main, 'feat/**', 'fix/**']
 
+permissions: read-all
+
 jobs:
   commitlint:
     name: Lint Commits
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
     steps:
       - uses: actions/checkout@v7
         with:
@@ -25,4 +30,7 @@ jobs:
           echo "module.exports = { extends: ['@commitlint/config-conventional'], rules: { 'type-enum': [2, 'always', ['feat', 'fix', 'docs', 'style', 'refactor', 'perf', 'test', 'build', 'ci', 'chore', 'revert']], 'subject-max-length': [1, 'always', 78], 'body-max-line-length': [1, 'always', 100] } };" > commitlint.config.js
 
       - name: Validate commits
-        run: npx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: npx commitlint --from "$BASE_SHA" --to "$HEAD_SHA" --verbose
