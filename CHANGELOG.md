@@ -8,6 +8,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 ### Added
+- Implemented Feature KL-Divergence Input Drift Tracker with rolling histogram compilation and Prometheus metrics for L5 Registry (#21)
+- Implemented Cost-Risk Lagrangian Compute Router and connection telemetry outage fallback for L4 Orchestrator (#20)
 - Implemented Precision-Weighted Risk Opinion Pool (CROP) with variance tracking for L3 Engine (#18)
 - Implemented Time-Adaptive Conformal Prediction Coverage and alert boundaries for L3 Engine (#19)
 - Added Graph Laplacian Fiedler eigenvalue and spectral instability calculations to SpatialGraphEngine (#3)
