@@ -8,6 +8,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 ### Added
+- Implemented Precision-Weighted Risk Opinion Pool (CROP) with variance tracking for L3 Engine (#18)
+- Implemented Time-Adaptive Conformal Prediction Coverage and alert boundaries for L3 Engine (#19)
+- Added Graph Laplacian Fiedler eigenvalue and spectral instability calculations to SpatialGraphEngine (#3)
 - Implemented Spatio-Temporal Graph Architecture for Cloud Engine (#16)
 - Implemented PyTorch Memory-Augmented Autoencoder (Mem-AE) for open-set anomaly detection (#17)
 - Implemented Multi-Camera Backpressure Manager and Abstain Policy for L2 Node (#15)
@@ -32,6 +35,12 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - docs: update changelog [skip ci] ([dfc9684](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/dfc9684814dcd97602fe4008a15ba48d03ad3e80)) @github-actions[bot]
 
 ### Changed
+- Merge pull request #97 from archittmittal/feat/l3-engine-crop-conformal-spectral
+
+feat: implement CROP, Conformal Prediction & Spectral Instability ([b36bff2](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/b36bff28efb62a4b48bfd13222dd9987a93e6de3)) @Purvansh Joshi
+- Merge pull request #96 from Anshul-5/feat/phase3-cluster-a
+
+feat: L3 Graph Structural Adjacency & Mem-AE ([3874b8a](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/3874b8a103982c9fd8b106460b5592986ec925f4)) @Purvansh Joshi
 - Merge pull request #93 from Anshul-5/feat/phase2-yolo-fusion
 
 feat: Phase 2 YOLOv8 Integration & Calibrated Log-Odds Fusion ([c91f4eb](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/c91f4eb95600a4681f436ea0f0303636393803b0)) @Purvansh Joshi
