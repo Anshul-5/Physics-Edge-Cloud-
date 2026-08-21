@@ -207,6 +207,7 @@ All 21 CI checks passing. Fixes commitlint subject length limit (72→78) and se
 - 23 mathematical/physical error fixes across documentation
 
 ### Fixed
+- fix: ensure UTF-8 encoding when writing reproducibility report on Windows ([a07763a](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/a07763a78d03b1a1bd403386bb48446bf2ba02ad)) @Purvansh Joshi
 - Dimensionally inconsistent v^2+a^2 energy formula (non-dimensionalized)
 - CROP normalizing constant Z (proper softmax normalization)
 - Panic Index units (notation table corrected to m/s^2)
