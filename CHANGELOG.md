@@ -49,6 +49,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - docs: update changelog [skip ci] ([dfc9684](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/dfc9684814dcd97602fe4008a15ba48d03ad3e80)) @github-actions[bot]
 
 ### Changed
+- Merge pull request #109 from Anshul-5/feat/l7-closed-loop-feedback
+
+feat: implement edge baseline closed-loop negative constraints ([b974848](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/b974848f8fb26b6f54152b856d8ec1f8f47c4c24)) @Purvansh Joshi
 - fix(test): probe OpenSSL headers before compiling Secure OTA in reproduce.py ([c4aa0ea](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/c4aa0ead2ee64a92ab6a0c2b40ba312320678d3a)) @Purvansh Joshi
 - Merge pull request #107 from Anshul-5/feat/phase5-closed-loop-ops-ota
 
