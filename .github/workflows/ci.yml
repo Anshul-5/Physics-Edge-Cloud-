@@ -131,6 +131,14 @@ jobs:
               -o test_uplink_buffer -lm
           ./test_uplink_buffer
 
+      - name: Compile and run OTA security tests with coverage
+        run: |
+          g++ --coverage -I edge/components/ota_security/include \
+              edge/components/ota_security/ota_security.c \
+              edge/test/test_ota_security.cpp \
+              -o test_ota_security -lm
+          ./test_ota_security
+
       - name: Generate coverage report
         if: always()
         run: |
