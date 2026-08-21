@@ -2,18 +2,19 @@ name: Benchmarks
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'feat/**', 'fix/**']
   pull_request:
-    branches: [main]
+    branches: [main, 'feat/**', 'fix/**']
 
 permissions:
   contents: read
   pull-requests: write
+  issues: write
 
 jobs:
   benchmark:
     name: Performance Benchmarks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v7
 
@@ -122,19 +123,21 @@ jobs:
             
             <sub>Benchmark run: ${new Date().toISOString()}</sub>`;
             
-            // 1. Write to Step Summary (works on fork PRs)
+            // 1. Write to Step Summary (works on all PRs including forks)
             try {
               core.summary.addRaw(body).write();
             } catch (err) {
               console.log("Unable to write step summary:", err.message);
             }
 
-            // 2. Attempt to comment on the PR (fails on fork PRs due to write permissions)
+            // 2. Attempt to comment on the PR (with fallback for fork permissions)
+            const prNumber = context.payload.pull_request ? context.payload.pull_request.number : context.issue.number;
+            
             try {
               const { data: comments } = await github.rest.issues.listComments({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                issue_number: context.issue.number,
+                issue_number: prNumber,
               });
               
               const existing = comments.find(c => c.body.includes('Performance Benchmark Results'));
@@ -150,7 +153,7 @@ jobs:
                 await github.rest.issues.createComment({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
-                  issue_number: context.issue.number,
+                  issue_number: prNumber,
                   body: body
                 });
               }

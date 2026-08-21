@@ -2,9 +2,9 @@ name: Code Coverage
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'feat/**', 'fix/**']
   pull_request:
-    branches: [main]
+    branches: [main, 'feat/**', 'fix/**']
 
 jobs:
   coverage:
@@ -43,6 +43,12 @@ jobs:
               edge/test/test_optical_flow.cpp \
               -o test_optical_flow -lm
           ./test_optical_flow
+
+          g++ --coverage -I edge/components/homography/include \
+              edge/components/homography/homography.cpp \
+              edge/test/test_homography.cpp \
+              -o test_homography -lm
+          ./test_homography
 
       - name: Generate coverage report
         run: |
