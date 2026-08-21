@@ -7,6 +7,8 @@ import networkx as nx
 from crop import CROP, WelfordVarianceTracker, EMAVarianceTracker
 from conformal import AdaptiveConformalPredictor
 from graph_engine import SpatialGraphEngine
+from orchestrator import LagrangianComputeRouter, RoutingAction
+
 
 def test_welford_variance_tracker():
     tracker = WelfordVarianceTracker()
@@ -145,3 +147,48 @@ def test_graph_spectral_instability():
     # Delta should be fiedler_init - fiedler_new
     # Since fiedler_init of a connected 4-cycle is around 0.5 (or >= 0.2), it should trigger instability
     assert is_unstable_new, f"Failed to detect spectral instability. Init: {fiedler_init}, New: {fiedler_new}"
+
+def test_lagrangian_router_routing_decisions():
+    # delta = 0.05, lambda = 10.0
+    router = LagrangianComputeRouter(delta=0.05, initial_lambda=10.0)
+    
+    # 1. Test routing of very low risk events -> should route to SKIP
+    action_low = router.decide_route(0.01)
+    assert action_low == RoutingAction.SKIP
+    
+    # 2. Test routing of very high risk events -> should route to FULL
+    action_high = router.decide_route(0.95)
+    assert action_high == RoutingAction.FULL
+    
+    # 3. Test intermediate risk events -> should route to PARTIAL or FULL depending on lambda
+    action_mid = router.decide_route(0.4)
+    assert action_mid in [RoutingAction.SKIP, RoutingAction.PARTIAL, RoutingAction.FULL]
+
+def test_lagrangian_router_lambda_update():
+    router = LagrangianComputeRouter(delta=0.05, eta=0.1, initial_lambda=1.0)
+    
+    # Check initial lambda
+    init_lambda = router.lambda_val
+    
+    # If chosen action is SKIP (miss factor = 1.0) and raw risk is high (e.g. 0.8),
+    # then expected miss risk is 0.8. Since 0.8 > delta (0.05), lambda should increase.
+    router.update_lambda(RoutingAction.SKIP, raw_risk=0.8)
+    assert router.lambda_val > init_lambda
+    
+    # If chosen action is FULL (miss factor = 0.01) and raw risk is low (e.g. 0.1),
+    # then expected miss risk is 0.001. Since 0.001 < delta (0.05), lambda should decrease.
+    prev_lambda = router.lambda_val
+    router.update_lambda(RoutingAction.FULL, raw_risk=0.1)
+    assert router.lambda_val < prev_lambda
+    
+def test_lagrangian_router_outage_fallback():
+    router = LagrangianComputeRouter()
+    
+    # Under normal latencies (e.g., 50ms)
+    router.record_latency(50.0)
+    assert router.decide_route(0.5) != RoutingAction.REGIONAL_FALLBACK
+    
+    # With a high latency spike above 1500ms (e.g., 1600ms)
+    router.record_latency(1600.0)
+    assert router.decide_route(0.5) == RoutingAction.REGIONAL_FALLBACK
+

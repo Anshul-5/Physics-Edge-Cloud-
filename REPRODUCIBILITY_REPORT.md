@@ -9,7 +9,7 @@ This document provides a cryptographic and test-validation transcript of the phy
 - **Architecture:** arm64
 - **Compiler Version:** Apple clang version 17.0.0 (clang-1700.6.4.2)
 - **Python Version:** 3.9.6
-- **Verification Timestamp:** 2026-08-21 06:01:13 UTC
+- **Verification Timestamp:** 2026-08-21 11:52:49 UTC
 
 ---
 
@@ -17,9 +17,9 @@ This document provides a cryptographic and test-validation transcript of the phy
 
 | Component Layer | Compilation | Tests Passed | Tests Failed | Execution Latency | Status |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **Downscaler** | ✓ Success | 5 | 0 | 574.613 ms | 🟢 PASS |
-| **Optical Flow** | ✓ Success | 7 | 0 | 512.669 ms | 🟢 PASS |
-| **Homography** | ✓ Success | 10 | 0 | 485.222 ms | 🟢 PASS |
+| **Downscaler** | ✓ Success | 5 | 0 | 1821.670 ms | 🟢 PASS |
+| **Optical Flow** | ✓ Success | 7 | 0 | 437.259 ms | 🟢 PASS |
+| **Homography** | ✓ Success | 10 | 0 | 447.250 ms | 🟢 PASS |
 
 ### Overall Verification Summary: **PASSED**
 - **Total Test Cases Executed:** 22
