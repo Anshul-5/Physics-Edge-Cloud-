@@ -50,6 +50,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - docs: update changelog [skip ci] ([dfc9684](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/dfc9684814dcd97602fe4008a15ba48d03ad3e80)) @github-actions[bot]
 
 ### Changed
+- Merge pull request #115 from Anshul-5/feat/issue-110-motion-energy
+
+feat(edge): implement flow-confidence-weighted motion energy calculation ([e00297a](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/e00297af1fff431475e78e164dc781acbd414b52)) @Purvansh Joshi
 - Merge pull request #109 from Anshul-5/feat/l7-closed-loop-feedback
 
 feat: implement edge baseline closed-loop negative constraints ([b974848](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/b974848f8fb26b6f54152b856d8ec1f8f47c4c24)) @Purvansh Joshi
