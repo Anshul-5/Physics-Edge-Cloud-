@@ -37,6 +37,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - docs: update changelog [skip ci] ([dfc9684](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/dfc9684814dcd97602fe4008a15ba48d03ad3e80)) @github-actions[bot]
 
 ### Changed
+- Merge pull request #102 from archittmittal/feat/l4-orchestrator-l5-drift-tracker
+
+feat: implement L4 Compute Router & L5 Input Drift Tracker ([78d4b2c](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/78d4b2c88f5fd4407283d2e66cf38f7011fed51d)) @Purvansh Joshi
 - Merge pull request #100 from Anshul-5/feat/openssf-security-hardening
 
 chore(security): apply comprehensive OpenSSF Scorecard hardening ([f5e7d9d](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/f5e7d9d0af61915195e7c5c7106b4f6864e8f5ef)) @Purvansh Joshi
