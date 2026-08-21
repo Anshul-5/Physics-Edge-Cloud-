@@ -8,6 +8,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 ### Added
+- Implemented Grid Coordinate Coarsening and Laplace Differential Privacy for security/privacy obfuscation (#24)
 - Implemented Precision-Weighted Risk Opinion Pool (CROP) with variance tracking for L3 Engine (#18)
 - Implemented Time-Adaptive Conformal Prediction Coverage and alert boundaries for L3 Engine (#19)
 - Added Graph Laplacian Fiedler eigenvalue and spectral instability calculations to SpatialGraphEngine (#3)
