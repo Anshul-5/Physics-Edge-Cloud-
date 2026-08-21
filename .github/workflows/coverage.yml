@@ -54,6 +54,12 @@ jobs:
               -o test_homography -lm
           ./test_homography
 
+          g++ --coverage -I edge/components/ota_security/include \
+              edge/components/ota_security/ota_security.c \
+              edge/test/test_ota_security.cpp \
+              -o test_ota_security -lm
+          ./test_ota_security
+
       - name: Generate coverage report
         run: |
           lcov --capture --directory . --output-file coverage.info 2>/dev/null || true

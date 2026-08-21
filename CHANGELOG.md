@@ -8,6 +8,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 ### Added
+- Implemented Closed-Loop Negative Constraints Pipeline and Edge Parameter Streamer for L7 Retraining (#27)
+- Implemented Operations Alert Dispatcher, Prometheus Fleet Metrics, and Grafana Dashboard for L8/L9 Operations (#30)
+- Implemented ESP32-S3 OTA Secure Boot Anti-Rollback validation and signing utility for L9 Delivery (#25)
 - Implemented Champion/Challenger Model Promotion Pipeline with bootstrap significance gating and Model Registry for L7 Retraining (#26)
 - Implemented Progressive Canary Rollout Scheduler with hashing-based fleet partitioning for L8 Delivery (#28)
 - Implemented SPRT False Alarm Rate Rollback Controller for automated canary safety monitoring for L8 Delivery (#29)
