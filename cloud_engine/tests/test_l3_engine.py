@@ -8,6 +8,8 @@ from crop import CROP, WelfordVarianceTracker, EMAVarianceTracker
 from conformal import AdaptiveConformalPredictor
 from graph_engine import SpatialGraphEngine
 from orchestrator import LagrangianComputeRouter, RoutingAction
+from drift_tracker import FeatureDriftTracker
+
 
 
 def test_welford_variance_tracker():
@@ -191,4 +193,96 @@ def test_lagrangian_router_outage_fallback():
     # With a high latency spike above 1500ms (e.g., 1600ms)
     router.record_latency(1600.0)
     assert router.decide_route(0.5) == RoutingAction.REGIONAL_FALLBACK
+
+def test_drift_tracker_no_drift():
+    # Setup bins and a baseline count
+    bin_edges = [0, 5, 10, 15, 20]
+    # Baseline follows a distribution centered around 7 (in the second bin: 5 to 10)
+    baseline_counts = [5, 45, 10, 2] # 4 bins
+    
+    tracker = FeatureDriftTracker(bin_edges, baseline_counts)
+    
+    # Ingest active samples matching baseline distribution
+    # 5 samples in bin 0, 45 in bin 1, 10 in bin 2, 2 in bin 3
+    # Total = 62 samples
+    np.random.seed(42)
+    samples = (
+        list(np.random.uniform(0.1, 4.9, 5)) +
+        list(np.random.uniform(5.1, 9.9, 45)) +
+        list(np.random.uniform(10.1, 14.9, 10)) +
+        list(np.random.uniform(15.1, 19.9, 2))
+    )
+    
+    for s in samples:
+        tracker.add_sample(s)
+        
+    # Check KL divergence
+    kl_div = tracker.compute_kl_divergence()
+    # It should be extremely small (close to 0) because distribution matches exactly
+    assert kl_div < 0.05
+    
+    # Alert should not trigger
+    alert_active, _ = tracker.check_drift_alert(threshold=0.5)
+    assert not alert_active
+
+def test_drift_tracker_with_drift():
+    # Setup bins and baseline count (mostly in bin 1)
+    bin_edges = [0, 5, 10, 15, 20]
+    baseline_counts = [5, 45, 10, 2]
+    
+    tracker = FeatureDriftTracker(bin_edges, baseline_counts)
+    
+    # Ingest active samples that have shifted to high values (mostly in bin 2 and 3)
+    np.random.seed(42)
+    samples = (
+        list(np.random.uniform(0.1, 4.9, 2)) +
+        list(np.random.uniform(5.1, 9.9, 5)) +
+        list(np.random.uniform(10.1, 14.9, 35)) +
+        list(np.random.uniform(15.1, 19.9, 20))
+    )
+    
+    for s in samples:
+        tracker.add_sample(s)
+        
+    # Check KL divergence
+    kl_div = tracker.compute_kl_divergence()
+    # Should be significant (exceeding 0.5)
+    assert kl_div > 0.5
+    
+    # Alert should trigger
+    alert_active, value = tracker.check_drift_alert(threshold=0.5)
+    assert alert_active
+    assert np.isclose(kl_div, value)
+
+def test_drift_tracker_time_window():
+    bin_edges = [0, 5, 10, 15, 20]
+    baseline_counts = [10, 10, 10, 10]
+    
+    # Window size: 10 seconds
+    tracker = FeatureDriftTracker(bin_edges, baseline_counts, window_seconds=10)
+    
+    # Add samples at different timestamps
+    tracker.add_sample(3.0, timestamp=100.0)
+    tracker.add_sample(7.0, timestamp=105.0)
+    tracker.add_sample(12.0, timestamp=112.0) # Within 10s of 114
+    tracker.add_sample(18.0, timestamp=114.0) # Current time is 114.0
+    
+    # Cutoff at 114.0 - 10 = 104.0
+    # Samples at 105.0, 112.0, 114.0 should be kept (3 samples)
+    # Sample at 100.0 should be pruned
+    assert len(tracker.samples) == 3
+    assert tracker.samples[0][1] == 7.0
+
+def test_drift_tracker_prometheus_metrics():
+    bin_edges = [0, 5, 10, 15, 20]
+    baseline_counts = [10, 10, 10, 10]
+    tracker = FeatureDriftTracker(bin_edges, baseline_counts)
+    
+    # Uniform baseline, no samples -> uniform active (due to empty buffer logic)
+    metrics_str = tracker.get_prometheus_metrics(name_prefix="test_feature")
+    
+    assert "test_feature_kl_divergence 0.000000" in metrics_str
+    assert "test_feature_alert_active 0.0" in metrics_str
+    assert "# TYPE test_feature_kl_divergence gauge" in metrics_str
+
 
