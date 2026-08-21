@@ -16,6 +16,13 @@ import time
 import sys
 import platform
 
+# OpenSSL flags auto-detection for Apple Silicon, Intel macOS, and Linux
+openssl_flags = ["-lcrypto"]
+if os.path.exists("/opt/homebrew/opt/openssl@3"):
+    openssl_flags.extend(["-I/opt/homebrew/opt/openssl@3/include", "-L/opt/homebrew/opt/openssl@3/lib"])
+elif os.path.exists("/usr/local/opt/openssl@3"):
+    openssl_flags.extend(["-I/usr/local/opt/openssl@3/include", "-L/usr/local/opt/openssl@3/lib"])
+
 COMPONENTS = {
     "Downscaler": {
         "src": "edge/components/downscaler/downscaler.cpp",
@@ -34,6 +41,13 @@ COMPONENTS = {
         "test": "edge/test/test_homography.cpp",
         "inc": "edge/components/homography/include",
         "binary": "test_homography",
+    },
+    "Secure OTA": {
+        "src": "edge/components/secure_ota/secure_ota.cpp",
+        "test": "edge/test/test_secure_ota.cpp",
+        "inc": "edge/components/secure_ota/include",
+        "binary": "test_secure_ota",
+        "flags": openssl_flags,
     }
 }
 
@@ -67,6 +81,8 @@ def compile_and_run(name, info):
         "-o", info["binary"],
         "-lm"
     ]
+    if "flags" in info:
+        compile_cmd.extend(info["flags"])
     
     comp_start = time.perf_counter()
     compile_res = subprocess.run(compile_cmd, capture_output=True, text=True)

@@ -86,10 +86,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Install GCC and lcov
+      - name: Install GCC, lcov and OpenSSL
         run: |
           sudo apt-get update
-          DEBIAN_FRONTEND=noninteractive sudo apt-get install -y --no-install-recommends gcc g++ lcov
+          DEBIAN_FRONTEND=noninteractive sudo apt-get install -y --no-install-recommends gcc g++ lcov libssl-dev
+
 
       - name: Compile and run downscaler tests with coverage
         run: |
@@ -130,6 +131,15 @@ jobs:
               edge/test/test_uplink_buffer.cpp \
               -o test_uplink_buffer -lm
           ./test_uplink_buffer
+
+      - name: Compile and run secure ota tests with coverage
+        run: |
+          g++ --coverage -I edge/components/secure_ota/include \
+              edge/components/secure_ota/secure_ota.cpp \
+              edge/test/test_secure_ota.cpp \
+              -o test_secure_ota -lm -lcrypto
+          ./test_secure_ota
+
 
       - name: Generate coverage report
         if: always()
