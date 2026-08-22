@@ -263,7 +263,6 @@ static int test_null_inputs(void) {
 static int test_motion_energy(void) {
     const int GRID_COLS = 10;
     const int GRID_ROWS = 7;
-    const int MB_SIZE = 16;
     const int NUM_BLOCKS = GRID_COLS * GRID_ROWS;
 
     // Initialize 70 homography trackers
