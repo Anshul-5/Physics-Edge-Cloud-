@@ -11,14 +11,34 @@ class TestBackpressureManager(unittest.TestCase):
         self.assertFalse(self.manager.should_abstain(9, 0.9))
 
     def test_heavy_load_abstains_low_suspicion(self):
-        # Over max_queue_size, it should reject low suspicion frames
+        # At and over max_queue_size, it should reject low suspicion frames
+        self.assertTrue(self.manager.should_abstain(10, 0.5))
         self.assertTrue(self.manager.should_abstain(11, 0.5))
         self.assertTrue(self.manager.should_abstain(15, 0.79))
 
     def test_heavy_load_accepts_high_suspicion(self):
         # Over max_queue_size, it should still accept highly suspicious frames
+        self.assertFalse(self.manager.should_abstain(10, 0.81))
         self.assertFalse(self.manager.should_abstain(11, 0.81))
         self.assertFalse(self.manager.should_abstain(50, 0.99))
+
+    def test_nan_fails_closed_under_load(self):
+        # Under heavy load, non-finite suspicion must be rejected (fail-closed)
+        self.assertTrue(self.manager.should_abstain(10, float('nan')))
+        self.assertTrue(self.manager.should_abstain(100, float('nan')))
+        self.assertTrue(self.manager.should_abstain(10, None))
+
+    def test_init_parameter_validation(self):
+        with self.assertRaises(ValueError):
+            BackpressureManager(max_queue_size=0)
+        with self.assertRaises(ValueError):
+            BackpressureManager(max_queue_size=-10)
+        with self.assertRaises(ValueError):
+            BackpressureManager(max_queue_size=10, abstain_threshold=-0.1)
+        with self.assertRaises(ValueError):
+            BackpressureManager(max_queue_size=10, abstain_threshold=1.5)
+        with self.assertRaises(ValueError):
+            BackpressureManager(max_queue_size=10, abstain_threshold=float('nan'))
 
 if __name__ == '__main__':
     unittest.main()

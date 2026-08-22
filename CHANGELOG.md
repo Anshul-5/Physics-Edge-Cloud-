@@ -7,13 +7,17 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ---
 
 ## [Unreleased]
-### Fixed
-- Fixed GitHub Pages deployment workflow with verified immutable action commit SHAs (#151)
-
 ### Security
+- Hardened L2 Regional Node gRPC ingestion with mTLS support, bounded queue, frame limits, and YOLO checksums
 - Hardened all 22 GitHub Actions workflows by pinning all action dependencies to immutable 40-character commit SHAs (#122)
 - Added dual-language SAST CodeQL analysis for C++ and Python with top-level read-all permissions (#122)
 - Added OpenSSF Best Practices Program badge to README (#122)
+
+### Fixed
+- Fixed NaN suppression in FusionEngine Bayesian log-odds updating and added temperature validation
+- Fixed worker thread exception resilience in PriorityStreamQueue process loop
+- Fixed off-by-one threshold and NaN fail-closed handling in BackpressureManager
+- Fixed GitHub Pages deployment workflow with verified immutable action commit SHAs (#151)
 
 ### Added
 - Hardened L1 firmware against integer overflows, signed SIMD shift, NaN corruption, and memory safety vulnerabilities (#160)

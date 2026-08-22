@@ -34,5 +34,37 @@ class TestFusionEngine(unittest.TestCase):
         fused = self.engine.fuse_log_odds(0.9, 0.1)
         self.assertAlmostEqual(fused, 0.5, places=4)
 
+    def test_temperature_validation(self):
+        # Temperature <= 0 or non-finite or non-numeric must raise
+        with self.assertRaises(ValueError):
+            FusionEngine(temperature=0)
+        with self.assertRaises(ValueError):
+            FusionEngine(temperature=-1.5)
+        with self.assertRaises(ValueError):
+            FusionEngine(temperature=float('nan'))
+        with self.assertRaises(ValueError):
+            FusionEngine(temperature=float('inf'))
+        with self.assertRaises(TypeError):
+            FusionEngine(temperature="1.5")
+        with self.assertRaises(TypeError):
+            FusionEngine(temperature=True)
+
+    def test_nan_fusion_does_not_suppress_alerts(self):
+        # NaN must be dropped and not drag the fused result to near-zero
+        fused_with_nan = self.engine.fuse_log_odds_multi([float('nan'), 0.9, 0.9])
+        fused_baseline = self.engine.fuse_log_odds_multi([0.9, 0.9])
+        self.assertAlmostEqual(fused_with_nan, fused_baseline, places=4)
+        self.assertGreater(fused_with_nan, 0.95)
+
+    def test_empty_and_all_nan_fusion(self):
+        self.assertEqual(self.engine.fuse_log_odds_multi([]), 0.5)
+        self.assertEqual(self.engine.fuse_log_odds_multi([float('nan'), None]), 0.5)
+
+    def test_calibration_nan_guard(self):
+        with self.assertRaises(ValueError):
+            self.engine.apply_temperature_calibration(float('nan'))
+        with self.assertRaises(TypeError):
+            self.engine.apply_temperature_calibration("high")
+
 if __name__ == '__main__':
     unittest.main()
