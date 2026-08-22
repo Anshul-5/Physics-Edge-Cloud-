@@ -63,6 +63,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - docs: update changelog [skip ci] ([dfc9684](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/dfc9684814dcd97602fe4008a15ba48d03ad3e80)) @github-actions[bot]
 
 ### Changed
+- docs(readme): style OpenSSF Best Practices badge with Shields.io (#163) ([26d6196](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/26d6196e45a659eca43725fec127cc6a4c3a70d6)) @Purvansh Joshi
 - feat(edge): harden L1 firmware security and correctness (#160)
 
 - Fix 32-bit integer overflow in secure_ota (Issue #117)
