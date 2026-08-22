@@ -7,6 +7,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ---
 
 ## [Unreleased]
+### Fixed
+- Fixed GitHub Pages deployment workflow with verified immutable action commit SHAs (#151)
+
 ### Security
 - Hardened all 22 GitHub Actions workflows by pinning all action dependencies to immutable 40-character commit SHAs (#122)
 - Added dual-language SAST CodeQL analysis for C++ and Python with top-level read-all permissions (#122)
