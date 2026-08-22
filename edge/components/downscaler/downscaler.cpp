@@ -35,6 +35,8 @@ downscaler_ctx_t *downscaler_init(uint8_t *output_buffer) {
 const uint8_t *downscale_bilinear(downscaler_ctx_t *ctx, const InputFrame *input) {
     if (!ctx || !input || !input->buffer) return NULL;
     if (input->width < 2 || input->height < 2) return NULL;
+    if (input->stride < input->width) return NULL;
+    if (input->width < DOWNSCALED_WIDTH || input->height < DOWNSCALED_HEIGHT) return NULL;
 
     const uint8_t *src = input->buffer;
     const uint32_t src_w = input->width;

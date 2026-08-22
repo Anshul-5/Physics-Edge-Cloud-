@@ -26,12 +26,12 @@
 #endif
 
 struct optical_flow_ctx {
-    /* Scratch buffer for SAD computation */
-    int16_t sad_buf[SEARCH_RANGE * 2 * SEARCH_RANGE * 2];
+    /* Reserved for future pipeline state */
+    uint32_t flags;
 };
 
 /* ============================================================
- * SIMD-optimized SAD computation
+ * Optimized SAD computation
  * ============================================================ */
 
 /**
@@ -58,19 +58,17 @@ static inline uint32_t sad_block_scalar(const uint8_t *curr,
     return sad;
 }
 
-#if USE_XTENSA_SIMD
 /**
- * @brief Compute SAD between two 16x16 macroblocks (Xtensa SIMD)
+ * @brief Compute SAD between two 16x16 macroblocks with loop unrolling and memcpy loads
  *
- * Uses EE.ADD.S16 / SSR-based SIMD for parallel byte operations.
- * Processes 8 bytes at a time using 16-bit accumulation.
+ * Processes 8 bytes per chunk, correctly computing signed absolute differences.
  */
-static uint32_t sad_block_simd(const uint8_t *curr,
-                               const uint8_t *prev,
-                               int32_t stride_curr,
-                               int32_t stride_prev,
-                               int32_t offset_x,
-                               int32_t offset_y)
+static inline uint32_t sad_block_unrolled(const uint8_t *curr,
+                                          const uint8_t *prev,
+                                          int32_t stride_curr,
+                                          int32_t stride_prev,
+                                          int32_t offset_x,
+                                          int32_t offset_y)
 {
     uint32_t sad = 0;
 
@@ -79,41 +77,40 @@ static uint32_t sad_block_simd(const uint8_t *curr,
         const uint8_t *row_prev = prev + (by + offset_y) * stride_prev;
         int32_t bx = 0;
 
-        /* Process 8 bytes at a time using SIMD */
+        /* Process 8 bytes at a time using unrolled loop */
         for (; bx + 8 <= MB_SIZE; bx += 8) {
-            /* Load 8 bytes from each block */
-            uint32_t a_val = *((const uint32_t *)(row_curr + bx));
-            uint32_t b_val = *((const uint32_t *)(row_prev + bx + offset_x));
-            uint32_t a2_val = *((const uint32_t *)(row_curr + bx + 4));
-            uint32_t b2_val = *((const uint32_t *)(row_prev + bx + offset_x + 4));
+            /* Aligned/safe load of 4 bytes using memcpy (avoids unaligned dereference UB) */
+            uint32_t a_val, b_val, a2_val, b2_val;
+            memcpy(&a_val, row_curr + bx, sizeof(uint32_t));
+            memcpy(&b_val, row_prev + bx + offset_x, sizeof(uint32_t));
+            memcpy(&a2_val, row_curr + bx + 4, sizeof(uint32_t));
+            memcpy(&b2_val, row_prev + bx + offset_x + 4, sizeof(uint32_t));
 
-            /* Compute absolute difference using bit manipulation (no divide) */
-            /* ABS(a-b) = ((a-b) ^ ((a-b) >> 31)) + ((a-b) >> 31) */
-            uint32_t xor_val, diff;
             uint32_t abs_diff = 0;
+            int32_t diff;
 
             /* Byte 0 */
-            diff = (a_val & 0xFF) - (b_val & 0xFF);
-            abs_diff += (diff ^ (diff >> 31)) + (diff >> 31);
+            diff = (int32_t)(a_val & 0xFF) - (int32_t)(b_val & 0xFF);
+            abs_diff += (uint32_t)(diff < 0 ? -diff : diff);
             /* Byte 1 */
-            diff = ((a_val >> 8) & 0xFF) - ((b_val >> 8) & 0xFF);
-            abs_diff += (diff ^ (diff >> 31)) + (diff >> 31);
+            diff = (int32_t)((a_val >> 8) & 0xFF) - (int32_t)((b_val >> 8) & 0xFF);
+            abs_diff += (uint32_t)(diff < 0 ? -diff : diff);
             /* Byte 2 */
-            diff = ((a_val >> 16) & 0xFF) - ((b_val >> 16) & 0xFF);
-            abs_diff += (diff ^ (diff >> 31)) + (diff >> 31);
+            diff = (int32_t)((a_val >> 16) & 0xFF) - (int32_t)((b_val >> 16) & 0xFF);
+            abs_diff += (uint32_t)(diff < 0 ? -diff : diff);
             /* Byte 3 */
-            diff = ((a_val >> 24) & 0xFF) - ((b_val >> 24) & 0xFF);
-            abs_diff += (diff ^ (diff >> 31)) + (diff >> 31);
+            diff = (int32_t)((a_val >> 24) & 0xFF) - (int32_t)((b_val >> 24) & 0xFF);
+            abs_diff += (uint32_t)(diff < 0 ? -diff : diff);
 
             /* Bytes 4-7 */
-            diff = (a2_val & 0xFF) - (b2_val & 0xFF);
-            abs_diff += (diff ^ (diff >> 31)) + (diff >> 31);
-            diff = ((a2_val >> 8) & 0xFF) - ((b2_val >> 8) & 0xFF);
-            abs_diff += (diff ^ (diff >> 31)) + (diff >> 31);
-            diff = ((a2_val >> 16) & 0xFF) - ((b2_val >> 16) & 0xFF);
-            abs_diff += (diff ^ (diff >> 31)) + (diff >> 31);
-            diff = ((a2_val >> 24) & 0xFF) - ((b2_val >> 24) & 0xFF);
-            abs_diff += (diff ^ (diff >> 31)) + (diff >> 31);
+            diff = (int32_t)(a2_val & 0xFF) - (int32_t)(b2_val & 0xFF);
+            abs_diff += (uint32_t)(diff < 0 ? -diff : diff);
+            diff = (int32_t)((a2_val >> 8) & 0xFF) - (int32_t)((b2_val >> 8) & 0xFF);
+            abs_diff += (uint32_t)(diff < 0 ? -diff : diff);
+            diff = (int32_t)((a2_val >> 16) & 0xFF) - (int32_t)((b2_val >> 16) & 0xFF);
+            abs_diff += (uint32_t)(diff < 0 ? -diff : diff);
+            diff = (int32_t)((a2_val >> 24) & 0xFF) - (int32_t)((b2_val >> 24) & 0xFF);
+            abs_diff += (uint32_t)(diff < 0 ? -diff : diff);
 
             sad += abs_diff;
         }
@@ -127,10 +124,9 @@ static uint32_t sad_block_simd(const uint8_t *curr,
 
     return sad;
 }
-#endif
 
 /**
- * @brief Compute SAD for a block, dispatching to SIMD or scalar
+ * @brief Compute SAD for a block, using the unrolled fast path
  */
 static inline uint32_t sad_block(const uint8_t *curr,
                                  const uint8_t *prev,
@@ -139,12 +135,17 @@ static inline uint32_t sad_block(const uint8_t *curr,
                                  int32_t offset_x,
                                  int32_t offset_y)
 {
-#if USE_XTENSA_SIMD
-    return sad_block_simd(curr, prev, stride_curr, stride_prev, offset_x, offset_y);
-#else
-    return sad_block_scalar(curr, prev, stride_curr, stride_prev, offset_x, offset_y);
-#endif
+    return sad_block_unrolled(curr, prev, stride_curr, stride_prev, offset_x, offset_y);
 }
+
+#ifdef OPTICAL_FLOW_TEST_EXPORTS
+uint32_t test_sad_block_scalar(const uint8_t *curr, const uint8_t *prev, int32_t sc, int32_t sp, int32_t ox, int32_t oy) {
+    return sad_block_scalar(curr, prev, sc, sp, ox, oy);
+}
+uint32_t test_sad_block_unrolled(const uint8_t *curr, const uint8_t *prev, int32_t sc, int32_t sp, int32_t ox, int32_t oy) {
+    return sad_block_unrolled(curr, prev, sc, sp, ox, oy);
+}
+#endif
 
 /**
  * @brief Compute spatial variance of a macroblock for confidence scoring

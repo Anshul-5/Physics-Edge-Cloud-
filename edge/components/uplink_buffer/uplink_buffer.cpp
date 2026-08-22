@@ -24,45 +24,56 @@ ring_buffer_t* uplink_buffer_init(int capacity) {
     return rb;
 }
 
-bool uplink_buffer_push(ring_buffer_t *rb, buffer_entry_t *entry) {
+bool uplink_buffer_push(ring_buffer_t *rb, const buffer_entry_t *entry) {
     if (!rb || !entry) return false;
     
-    // If full, we overwrite the oldest (tail)
+    uint8_t *new_frame = NULL;
+    MotionVector *new_flow = NULL;
+    
+    // Allocate and copy frame data if present
+    if (entry->frame_size > 0 && entry->frame_data) {
+        new_frame = static_cast<uint8_t*>(malloc(entry->frame_size));
+        if (!new_frame) {
+            return false;
+        }
+        memcpy(new_frame, entry->frame_data, entry->frame_size);
+    }
+    
+    // Allocate and copy flow vectors if present (using true sizeof(MotionVector))
+    if (entry->flow_count > 0 && entry->flow_vectors) {
+        if (entry->flow_count > UPLINK_MAX_FLOW_BLOCKS) {
+            free(new_frame);
+            return false;
+        }
+        size_t flow_bytes = (size_t)entry->flow_count * sizeof(MotionVector);
+        new_flow = static_cast<MotionVector*>(malloc(flow_bytes));
+        if (!new_flow) {
+            free(new_frame);
+            return false;
+        }
+        memcpy(new_flow, entry->flow_vectors, flow_bytes);
+    }
+    
+    // If full, evict the oldest entry (tail)
     if (rb->count == rb->capacity) {
-        // Free old memory inside the entry before overwriting
         free(rb->entries[rb->tail].frame_data);
         free(rb->entries[rb->tail].flow_vectors);
+        rb->entries[rb->tail].frame_data = NULL;
+        rb->entries[rb->tail].flow_vectors = NULL;
         
         rb->tail = (rb->tail + 1) % rb->capacity;
         rb->count--;
     }
     
-    // Deep copy into the head
+    // Commit new entry to head
     buffer_entry_t *dest = &rb->entries[rb->head];
     dest->timestamp = entry->timestamp;
     dest->suspicion = entry->suspicion;
     dest->jerk = entry->jerk;
-    dest->frame_size = entry->frame_size;
-    dest->flow_count = entry->flow_count;
-    
-    if (entry->frame_size > 0 && entry->frame_data) {
-        dest->frame_data = static_cast<uint8_t*>(malloc(entry->frame_size));
-        if (dest->frame_data) {
-            memcpy(dest->frame_data, entry->frame_data, entry->frame_size);
-        }
-    } else {
-        dest->frame_data = NULL;
-    }
-    
-    if (entry->flow_count > 0 && entry->flow_vectors) {
-        size_t flow_bytes = entry->flow_count * 8; // Assuming 8 bytes per flow vector
-        dest->flow_vectors = malloc(flow_bytes);
-        if (dest->flow_vectors) {
-            memcpy(dest->flow_vectors, entry->flow_vectors, flow_bytes);
-        }
-    } else {
-        dest->flow_vectors = NULL;
-    }
+    dest->frame_data = new_frame;
+    dest->frame_size = new_frame ? entry->frame_size : 0;
+    dest->flow_vectors = new_flow;
+    dest->flow_count = new_flow ? entry->flow_count : 0;
     
     rb->head = (rb->head + 1) % rb->capacity;
     rb->count++;

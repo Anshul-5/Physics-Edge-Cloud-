@@ -144,6 +144,29 @@ static int test_pixel_range(void) {
     return 0;
 }
 
+/** Test 6: Stride < width or width/height < downscaled resolution returns NULL */
+static int test_stride_and_dim_validation(void) {
+    uint8_t src[320 * 240];
+    uint8_t dst[DOWNSCALED_BUF_SIZE];
+    downscaler_ctx_t *ctx = downscaler_init(dst);
+
+    // Stride < width
+    InputFrame invalid_stride = {src, 320, 240, 300};
+    assert(downscale_bilinear(ctx, &invalid_stride) == NULL);
+
+    // Width < DOWNSCALED_WIDTH (160)
+    InputFrame small_w = {src, 100, 240, 100};
+    assert(downscale_bilinear(ctx, &small_w) == NULL);
+
+    // Height < DOWNSCALED_HEIGHT (120)
+    InputFrame small_h = {src, 320, 100, 320};
+    assert(downscale_bilinear(ctx, &small_h) == NULL);
+
+    downscaler_deinit(ctx);
+    printf("PASS test_stride_and_dim_validation\n");
+    return 0;
+}
+
 int main(void) {
     printf("=== Downscaler Unit Tests ===\n");
     int failures = 0;
@@ -153,6 +176,7 @@ int main(void) {
     failures += test_buffer_size();
     failures += test_null_input();
     failures += test_pixel_range();
+    failures += test_stride_and_dim_validation();
 
     printf("\n=== Results: %d failures ===\n", failures);
     return failures;

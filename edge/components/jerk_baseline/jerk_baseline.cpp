@@ -6,6 +6,8 @@
 
 jerk_ctx_t *jerk_baseline_init(float alpha, float threshold, int k, int m) {
     if (k > m || m > 32 || k <= 0 || m <= 0) return NULL;
+    if (!isfinite(alpha) || alpha <= 0.0f || alpha >= 1.0f) return NULL;
+    if (!isfinite(threshold) || threshold <= 0.0f) return NULL;
 
     jerk_ctx_t *ctx = static_cast<jerk_ctx_t*>(calloc(1, sizeof(jerk_ctx_t)));
     if (!ctx) return NULL;
@@ -26,7 +28,7 @@ jerk_ctx_t *jerk_baseline_init(float alpha, float threshold, int k, int m) {
 }
 
 bool jerk_baseline_update(jerk_ctx_t *ctx, int hour_of_day, float jerk_mag, float *out_surprise) {
-    if (!ctx || hour_of_day < 0 || hour_of_day >= NUM_TIME_BINS) return false;
+    if (!ctx || !isfinite(jerk_mag) || hour_of_day < 0 || hour_of_day >= NUM_TIME_BINS) return false;
 
     time_bin_stats_t *bin = &ctx->bins[hour_of_day];
     float surprise = 0.0f;
@@ -77,7 +79,7 @@ bool jerk_baseline_update(jerk_ctx_t *ctx, int hour_of_day, float jerk_mag, floa
 }
 
 bool jerk_baseline_apply_constraint(jerk_ctx_t *ctx, float factor) {
-    if (!ctx) {
+    if (!ctx || !isfinite(factor)) {
         return false;
     }
     
@@ -89,7 +91,12 @@ bool jerk_baseline_apply_constraint(jerk_ctx_t *ctx, float factor) {
         safe_factor = 1.25f;
     }
     
-    ctx->surprise_threshold *= safe_factor;
+    float next_threshold = ctx->surprise_threshold * safe_factor;
+    if (!isfinite(next_threshold) || next_threshold <= 0.0f) {
+        return false;
+    }
+    
+    ctx->surprise_threshold = next_threshold;
     return true;
 }
 

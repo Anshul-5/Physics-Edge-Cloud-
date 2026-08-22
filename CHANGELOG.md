@@ -16,6 +16,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Added OpenSSF Best Practices Program badge to README (#122)
 
 ### Added
+- Hardened L1 firmware against integer overflows, signed SIMD shift, NaN corruption, and memory safety vulnerabilities (#160)
 - Implemented Time-to-Collision (TTC) calculations with division-by-zero safeguards for L1 Edge (#112)
 - Implemented Spatiotemporal Pedestrian Interaction Graph and spectral instability detector for L3 Engine (#113)
 - Added End-to-End Evaluation & Benchmark Harness, kinematics reprojection tests, and production configuration (#111)

@@ -219,6 +219,47 @@ static int test_num_blocks(void) {
     return 0;
 }
 
+#ifdef OPTICAL_FLOW_TEST_EXPORTS
+extern uint32_t test_sad_block_scalar(const uint8_t *curr, const uint8_t *prev, int32_t sc, int32_t sp, int32_t ox, int32_t oy);
+extern uint32_t test_sad_block_unrolled(const uint8_t *curr, const uint8_t *prev, int32_t sc, int32_t sp, int32_t ox, int32_t oy);
+
+/** Test 8: Unrolled SAD is equivalent to scalar SAD across negative diffs and random bytes */
+static int test_sad_unrolled_equivalence(void) {
+    uint8_t curr[MB_SIZE * MB_SIZE];
+    uint8_t prev[MB_SIZE * MB_SIZE];
+    
+    /* Test 1: curr darker than prev (curr < prev), which triggers negative differences */
+    for (int i = 0; i < MB_SIZE * MB_SIZE; i++) {
+        curr[i] = 5;
+        prev[i] = 10;
+    }
+    uint32_t sad_scal = test_sad_block_scalar(curr, prev, MB_SIZE, MB_SIZE, 0, 0);
+    uint32_t sad_unr = test_sad_block_unrolled(curr, prev, MB_SIZE, MB_SIZE, 0, 0);
+    if (sad_scal != 5 * 16 * 16 || sad_unr != sad_scal) {
+        printf("FAIL: negative diffs expected %u, unrolled=%u, scalar=%u\n", 5 * 16 * 16, sad_unr, sad_scal);
+        return 1;
+    }
+
+    /* Test 2: randomized patterns */
+    srand(42);
+    for (int iter = 0; iter < 100; iter++) {
+        for (int i = 0; i < MB_SIZE * MB_SIZE; i++) {
+            curr[i] = (uint8_t)(rand() % 256);
+            prev[i] = (uint8_t)(rand() % 256);
+        }
+        uint32_t s_scal = test_sad_block_scalar(curr, prev, MB_SIZE, MB_SIZE, 0, 0);
+        uint32_t s_unr = test_sad_block_unrolled(curr, prev, MB_SIZE, MB_SIZE, 0, 0);
+        if (s_scal != s_unr) {
+            printf("FAIL: iter %d unrolled (%u) != scalar (%u)\n", iter, s_unr, s_scal);
+            return 1;
+        }
+    }
+
+    printf("PASS test_sad_unrolled_equivalence\n");
+    return 0;
+}
+#endif
+
 int main(void) {
     printf("=== Optical Flow Unit Tests ===\n");
     int failures = 0;
@@ -230,6 +271,9 @@ int main(void) {
     failures += test_textured_confidence();
     failures += test_null_inputs();
     failures += test_num_blocks();
+#ifdef OPTICAL_FLOW_TEST_EXPORTS
+    failures += test_sad_unrolled_equivalence();
+#endif
 
     printf("\n=== Results: %d failures ===\n", failures);
     return failures;

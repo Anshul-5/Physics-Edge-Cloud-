@@ -22,3 +22,24 @@ bool ota_validate_header_magic(const ota_header_t *header)
     }
     return header->magic == OTA_MAGIC_HEADER;
 }
+
+ota_hdr_result_t ota_validate_header(const ota_header_t *header, size_t image_len)
+{
+    if (!header) {
+        return OTA_HDR_ERR_NULL;
+    }
+
+    if (image_len < sizeof(ota_header_t)) {
+        return OTA_HDR_ERR_OUT_OF_BOUNDS;
+    }
+
+    if (header->magic != OTA_MAGIC_HEADER) {
+        return OTA_HDR_ERR_BAD_MAGIC;
+    }
+
+    if (header->payload_size == 0 || header->payload_size > image_len - sizeof(ota_header_t)) {
+        return OTA_HDR_ERR_BAD_SIZE;
+    }
+
+    return OTA_HDR_OK;
+}

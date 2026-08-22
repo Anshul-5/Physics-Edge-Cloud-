@@ -47,6 +47,7 @@ COMPONENTS = {
         "test": "edge/test/test_optical_flow.cpp",
         "inc": "edge/components/optical_flow/include",
         "binary": "test_optical_flow",
+        "flags": ["-DOPTICAL_FLOW_TEST_EXPORTS"],
     },
     "Homography": {
         "src": "edge/components/homography/homography.cpp",
@@ -59,6 +60,18 @@ COMPONENTS = {
         "test": "edge/test/test_jerk_baseline.cpp",
         "inc": "edge/components/jerk_baseline/include",
         "binary": "test_jerk_baseline",
+    },
+    "Uplink Buffer": {
+        "src": "edge/components/uplink_buffer/uplink_buffer.cpp",
+        "test": "edge/test/test_uplink_buffer.cpp",
+        "inc": "edge/components/uplink_buffer/include",
+        "binary": "test_uplink_buffer",
+    },
+    "OTA Security": {
+        "src": "edge/components/ota_security/ota_security.c",
+        "test": "edge/test/test_ota_security.cpp",
+        "inc": "edge/components/ota_security/include",
+        "binary": "test_ota_security",
     }
 }
 

@@ -34,6 +34,8 @@ extern "C" {
 /** Confidence threshold: spatial variance below this = textureless */
 #define VARIANCE_THRESHOLD  15.0f
 
+#ifndef MOTION_VECTOR_STRUCT_DEFINED
+#define MOTION_VECTOR_STRUCT_DEFINED
 /**
  * @brief 2D motion vector with confidence
  */
@@ -42,6 +44,7 @@ typedef struct {
     int8_t dy;          /**< Vertical displacement (pixels) */
     uint8_t confidence; /**< 0-255, 0=textureless/low confidence */
 } MotionVector;
+#endif
 
 /**
  * @brief Optical flow result grid
