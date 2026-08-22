@@ -36,7 +36,7 @@ coverage/
 /test_ota_security
 /test_secure_ota
 /test_uplink_buffer
-test_*
+/test_*
 
 # Generated Protobuf Stubs
 regional_node/*_pb2.py
