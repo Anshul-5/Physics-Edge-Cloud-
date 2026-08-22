@@ -59,6 +59,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - docs: update changelog [skip ci] ([dfc9684](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/dfc9684814dcd97602fe4008a15ba48d03ad3e80)) @github-actions[bot]
 
 ### Changed
+- ci(security): pin action SHAs, dual-language SAST & OpenSSF badges (#150) ([55a33f1](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/55a33f199286f77b62fcf2986667e03bc270c3b7)) @Purvansh Joshi
 - Merge pull request #116 from Anshul-5/feat/roadmap-ttc-interaction-benchmark
 
 feat: implement TTC safeguards, pedestrian graph & benchmark harness ([ded548b](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/ded548b208db272ba0682a1e0ab0a0edf5ab8b69)) @Purvansh Joshi
