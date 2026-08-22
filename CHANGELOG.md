@@ -54,6 +54,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - docs: update changelog [skip ci] ([dfc9684](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/dfc9684814dcd97602fe4008a15ba48d03ad3e80)) @github-actions[bot]
 
 ### Changed
+- Merge pull request #116 from Anshul-5/feat/roadmap-ttc-interaction-benchmark
+
+feat: implement TTC safeguards, pedestrian graph & benchmark harness ([ded548b](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/ded548b208db272ba0682a1e0ab0a0edf5ab8b69)) @Purvansh Joshi
 - Merge pull request #115 from Anshul-5/feat/issue-110-motion-energy
 
 feat(edge): implement flow-confidence-weighted motion energy calculation ([e00297a](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/e00297af1fff431475e78e164dc781acbd414b52)) @Purvansh Joshi
