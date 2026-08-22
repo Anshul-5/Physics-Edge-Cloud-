@@ -6,6 +6,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![ESP-IDF](https://img.shields.io/badge/ESP--IDF-v5.1+-orange.svg)](https://docs.espressif.com/projects/esp-idf/en/v5.1/esp32s3/)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/Anshul-5/Physics-Edge-Cloud-/badge)](https://securityscorecards.dev/viewer/?uri=github.com/Anshul-5/Physics-Edge-Cloud-)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/github/Anshul-5/Physics-Edge-Cloud-/badge)](https://www.bestpractices.dev/projects/github/Anshul-5/Physics-Edge-Cloud-)
 
 > An Uncertainty-Calibrated, Physics-Informed Edge-to-Cloud Cascade for Real-Time Video Anomaly Detection
 

@@ -7,6 +7,11 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ---
 
 ## [Unreleased]
+### Security
+- Hardened all 22 GitHub Actions workflows by pinning all action dependencies to immutable 40-character commit SHAs (#122)
+- Added dual-language SAST CodeQL analysis for C++ and Python with top-level read-all permissions (#122)
+- Added OpenSSF Best Practices Program badge to README (#122)
+
 ### Added
 - Implemented Time-to-Collision (TTC) calculations with division-by-zero safeguards for L1 Edge (#112)
 - Implemented Spatiotemporal Pedestrian Interaction Graph and spectral instability detector for L3 Engine (#113)
