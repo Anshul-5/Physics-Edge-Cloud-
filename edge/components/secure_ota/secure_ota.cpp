@@ -40,22 +40,22 @@ secure_ota_err_t secure_ota_parse_image(const uint8_t *image_data, size_t image_
     memcpy(&(header->payload_len), image_data + offset, sizeof(uint32_t));
     offset += sizeof(uint32_t);
     
-    // Validate bounds for payload to prevent buffer overread (OpenSSF Standard)
-    if (offset + header->payload_len > image_len) {
+    // Validate bounds for payload to prevent buffer overread (Safe subtraction prevents 32-bit overflow)
+    if (header->payload_len > image_len - offset) {
         return SECURE_OTA_ERR_OUT_OF_BOUNDS;
     }
     header->payload = image_data + offset;
     offset += header->payload_len;
     
     // Read Signature Length
-    if (offset + sizeof(uint32_t) > image_len) {
+    if (sizeof(uint32_t) > image_len - offset) {
         return SECURE_OTA_ERR_OUT_OF_BOUNDS;
     }
     memcpy(&(header->signature_len), image_data + offset, sizeof(uint32_t));
     offset += sizeof(uint32_t);
     
-    // Validate bounds for signature
-    if (offset + header->signature_len > image_len) {
+    // Validate bounds for signature (Safe subtraction prevents 32-bit overflow)
+    if (header->signature_len > image_len - offset) {
         return SECURE_OTA_ERR_OUT_OF_BOUNDS;
     }
     header->signature = image_data + offset;
@@ -74,10 +74,11 @@ secure_ota_err_t secure_ota_verify_signature(const uint8_t *image_data, size_t i
     }
     
     // signed_data_len represents Magic + Security Version + Payload Len + Payload
-    size_t signed_data_len = SECURE_OTA_MAGIC_LEN + sizeof(uint32_t) + sizeof(uint32_t) + header->payload_len;
-    if (signed_data_len > image_len) {
+    const size_t prefix_len = SECURE_OTA_MAGIC_LEN + sizeof(uint32_t) + sizeof(uint32_t);
+    if (header->payload_len > image_len - prefix_len) {
         return SECURE_OTA_ERR_OUT_OF_BOUNDS;
     }
+    size_t signed_data_len = prefix_len + header->payload_len;
 
 #ifdef ESP_PLATFORM
     // 1. Compute SHA-256 hash using Mbed TLS

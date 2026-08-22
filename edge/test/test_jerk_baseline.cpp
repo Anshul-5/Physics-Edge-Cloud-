@@ -75,6 +75,25 @@ int main() {
     success = jerk_baseline_apply_constraint(NULL, 1.10f);
     assert(success == false);
 
+    // Test 6d: NaN and Infinity constraint factors (must be rejected, not corrupt threshold)
+    float pre_nan_thresh = ctx->surprise_threshold;
+    assert(jerk_baseline_apply_constraint(ctx, NAN) == false);
+    assert(fabsf(ctx->surprise_threshold - pre_nan_thresh) < 1e-6f);
+    assert(jerk_baseline_apply_constraint(ctx, INFINITY) == false);
+    assert(fabsf(ctx->surprise_threshold - pre_nan_thresh) < 1e-6f);
+    assert(jerk_baseline_apply_constraint(ctx, -INFINITY) == false);
+    assert(fabsf(ctx->surprise_threshold - pre_nan_thresh) < 1e-6f);
+
+    // Test 7: Non-finite inputs to jerk_baseline_update
+    assert(jerk_baseline_update(ctx, hour, NAN, &surprise) == false);
+    assert(jerk_baseline_update(ctx, hour, INFINITY, &surprise) == false);
+
+    // Test 8: Invalid init parameters
+    assert(jerk_baseline_init(NAN, 3.0f, 3, 5) == NULL);
+    assert(jerk_baseline_init(0.1f, NAN, 3, 5) == NULL);
+    assert(jerk_baseline_init(-0.1f, 3.0f, 3, 5) == NULL);
+    assert(jerk_baseline_init(0.1f, -3.0f, 3, 5) == NULL);
+
     printf("PASS: Jerk Baseline Tests\n");
     jerk_baseline_deinit(ctx);
     return 0;

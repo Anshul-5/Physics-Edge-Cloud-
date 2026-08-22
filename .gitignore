@@ -24,8 +24,23 @@ dist/
 *.sarif
 *.info
 *.gcov
+*.gcda
+*.gcno
 coverage/
 .coverage
+/test_downscaler
+/test_downscaler_san
+/test_homography
+/test_jerk_baseline
+/test_optical_flow
+/test_ota_security
+/test_secure_ota
+/test_uplink_buffer
+test_*
+
+# Generated Protobuf Stubs
+regional_node/*_pb2.py
+regional_node/*_pb2_grpc.py
 
 # Document files
 *.docx

@@ -145,10 +145,23 @@ static int test_denominator_guard(void) {
     ASSERT_TRUE(!p.valid, "point at denom=0 should be invalid");
 
     /* denom = x = 100 -> valid */
-    ASSERT_TRUE(homography_project(ctx, 100, 5, &p), "project should succeed");
+    ASSERT_TRUE(homography_project(ctx, 100, 5, &p), "point at denom!=0 should be valid");
     ASSERT_TRUE(p.valid, "point at denom!=0 should be valid");
 
     homography_deinit(ctx);
+
+    /* Test threshold just below HOM_DENOM_MIN_FP (655 in Q16.16) */
+    const float SMALL_DENOM_H[9] = {
+        1.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.005f /* h22 in Q16.16 is 327 < 655 */
+    };
+    ctx = homography_init(SMALL_DENOM_H);
+    ASSERT_TRUE(ctx != NULL, "init should succeed");
+    ASSERT_TRUE(homography_project(ctx, 0, 0, &p), "project should succeed");
+    ASSERT_TRUE(!p.valid, "denominator below 655 should be marked invalid");
+    homography_deinit(ctx);
+
     printf("PASS test_denominator_guard\n");
     return 0;
 }
@@ -347,6 +360,38 @@ static int test_motion_energy(void) {
     );
     if (!ok || energy != 0.0f) {
         printf("FAIL: expected division-by-zero safeguard to return 0.0f, got %f (ok=%d)\n", energy, ok);
+        for (int j = 0; j < NUM_BLOCKS; j++) homography_deinit(trackers[j]);
+        return 1;
+    }
+
+    // Scenario 3: Test num_blocks > NUM_BLOCKS rejected
+    ok = homography_compute_motion_energy(
+        trackers, dx, dy, confidence, NUM_BLOCKS + 1, 40000,
+        1.0f, 1.0f, 1.0f, 10.0f, 1.0f, 1.0f, &energy
+    );
+    if (ok) {
+        printf("FAIL: expected num_blocks > NUM_BLOCKS to return false\n");
+        for (int j = 0; j < NUM_BLOCKS; j++) homography_deinit(trackers[j]);
+        return 1;
+    }
+
+    // Scenario 4: Test negative/invalid lambda and refs rejected
+    ok = homography_compute_motion_energy(
+        trackers, dx, dy, confidence, NUM_BLOCKS, 40000,
+        -1.0f, 1.0f, 1.0f, 10.0f, 1.0f, 1.0f, &energy
+    );
+    if (ok) {
+        printf("FAIL: expected negative lambda to return false\n");
+        for (int j = 0; j < NUM_BLOCKS; j++) homography_deinit(trackers[j]);
+        return 1;
+    }
+
+    ok = homography_compute_motion_energy(
+        trackers, dx, dy, confidence, NUM_BLOCKS, 40000,
+        1.0f, 1.0f, 1.0f, -10.0f, 1.0f, 1.0f, &energy
+    );
+    if (ok) {
+        printf("FAIL: expected negative v_ref to return false\n");
         for (int j = 0; j < NUM_BLOCKS; j++) homography_deinit(trackers[j]);
         return 1;
     }

@@ -17,11 +17,17 @@
 #include <math.h>
 
 /** Denominator magnitude (Q16.16) below which a projection is degenerate.
- *  ~1e-6 in real terms as specified by the calibration guard. */
-#define HOM_DENOM_MIN_FP 1
+ *  655 in Q16.16 == 0.01 in real terms. */
+#define HOM_DENOM_MIN_FP 655
 
 /** EWMA smoothing factor alpha = 1/3 (Q16.16), giving a 3-tap rolling feel */
 #define HOM_EMA_ALPHA 21845
+
+/** Macroblock grid dimensions for 160x120 frame */
+#define HOM_GRID_COLS      10
+#define HOM_GRID_ROWS      7
+#define HOM_MB_SIZE        16
+#define HOM_MAX_BLOCKS     (HOM_GRID_COLS * HOM_GRID_ROWS) /* 70 */
 
 struct homography_ctx {
     /* 3x3 homography, row-major, Q16.16 */
@@ -75,9 +81,22 @@ bool homography_project(const homography_ctx_t *ctx,
         return true;
     }
 
-    /* X_m = n_x / d, scaled to Q16.16 */
-    out->x_m = (int32_t)((n_x << HOM_FP_SHIFT) / d);
-    out->y_m = (int32_t)((n_y << HOM_FP_SHIFT) / d);
+    /* X_m = n_x / d, scaled to Q16.16 with saturation / overflow guard */
+    int64_t scaled_nx = n_x * (1LL << HOM_FP_SHIFT);
+    int64_t scaled_ny = n_y * (1LL << HOM_FP_SHIFT);
+
+    int64_t q_x = scaled_nx / d;
+    int64_t q_y = scaled_ny / d;
+
+    if (q_x > INT32_MAX || q_x < INT32_MIN || q_y > INT32_MAX || q_y < INT32_MIN) {
+        out->x_m = 0;
+        out->y_m = 0;
+        out->valid = false;
+        return true;
+    }
+
+    out->x_m = (int32_t)q_x;
+    out->y_m = (int32_t)q_y;
     out->valid = true;
     return true;
 }
@@ -92,8 +111,10 @@ bool homography_kinematics_update(homography_ctx_t *ctx,
     if (!ctx || !out || dt_us <= 0) return false;
 
     HomPoint curr, prev;
-    homography_project(ctx, curr_x, curr_y, &curr);
-    homography_project(ctx, prev_x, prev_y, &prev);
+    if (!homography_project(ctx, curr_x, curr_y, &curr) ||
+        !homography_project(ctx, prev_x, prev_y, &prev)) {
+        return false;
+    }
 
     if (!curr.valid || !prev.valid) return false;
 
@@ -152,10 +173,6 @@ bool homography_kinematics_update(homography_ctx_t *ctx,
     return true;
 }
 
-#define HOM_GRID_COLS      10
-#define HOM_GRID_ROWS      7
-#define HOM_MB_SIZE        16
-
 bool homography_compute_motion_energy(homography_ctx_t *block_trackers[],
                                       const int8_t *dx_vals,
                                       const int8_t *dy_vals,
@@ -166,12 +183,19 @@ bool homography_compute_motion_energy(homography_ctx_t *block_trackers[],
                                       float v_ref, float a_ref, float j_ref,
                                       float *out_energy)
 {
-    if (!block_trackers || !dx_vals || !dy_vals || !confidences || !out_energy || dt_us <= 0 || num_blocks == 0) {
+    if (!block_trackers || !dx_vals || !dy_vals || !confidences || !out_energy ||
+        dt_us <= 0 || num_blocks == 0 || num_blocks > HOM_MAX_BLOCKS) {
         return false;
     }
     
-    // Check references to prevent division by zero
-    if (v_ref <= 0.0f || a_ref <= 0.0f || j_ref <= 0.0f) {
+    if (!isfinite(lambda1) || !isfinite(lambda2) || !isfinite(lambda3) ||
+        lambda1 < 0.0f || lambda2 < 0.0f || lambda3 < 0.0f) {
+        return false;
+    }
+
+    // Check references to prevent division by zero or negative/non-finite scales
+    if (!isfinite(v_ref) || !isfinite(a_ref) || !isfinite(j_ref) ||
+        v_ref <= 0.0f || a_ref <= 0.0f || j_ref <= 0.0f) {
         return false;
     }
 
@@ -179,14 +203,17 @@ bool homography_compute_motion_energy(homography_ctx_t *block_trackers[],
     float denominator = 0.0f;
 
     for (uint32_t i = 0; i < num_blocks; i++) {
+        if (!block_trackers[i]) {
+            continue;
+        }
         uint8_t w = confidences[i];
         if (w == 0) {
             continue; // Skip textureless/low confidence blocks
         }
 
         // Calculate block center (current coordinates)
-        int32_t col = i % HOM_GRID_COLS;
-        int32_t row = i / HOM_GRID_COLS;
+        int32_t col = (int32_t)(i % HOM_GRID_COLS);
+        int32_t row = (int32_t)(i / HOM_GRID_COLS);
         
         int32_t curr_x = col * HOM_MB_SIZE + HOM_MB_SIZE / 2;
         int32_t curr_y = row * HOM_MB_SIZE + HOM_MB_SIZE / 2;

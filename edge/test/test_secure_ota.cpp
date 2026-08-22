@@ -318,6 +318,30 @@ static int test_secure_ota_null_params(void) {
     return 0;
 }
 
+// Test 9: Integer overflow payloads in header bounds checks
+static int test_secure_ota_integer_overflow(void) {
+    uint8_t raw[32] = {0};
+    memcpy(raw, "PEOTA", 5);
+    uint32_t version = 1;
+    memcpy(raw + 5, &version, sizeof(uint32_t));
+    uint32_t huge_len = 0xFFFFFFFF;
+    memcpy(raw + 9, &huge_len, sizeof(uint32_t)); // payload_len = 0xFFFFFFFF
+    
+    secure_ota_header_t header;
+    secure_ota_err_t err = secure_ota_parse_image(raw, sizeof(raw), &header);
+    assert(err == SECURE_OTA_ERR_OUT_OF_BOUNDS);
+    
+    // Now test overflow in signature len
+    uint32_t small_len = 4;
+    memcpy(raw + 9, &small_len, sizeof(uint32_t)); // payload_len = 4
+    memcpy(raw + 13 + 4, &huge_len, sizeof(uint32_t)); // signature_len = 0xFFFFFFFF
+    err = secure_ota_parse_image(raw, sizeof(raw), &header);
+    assert(err == SECURE_OTA_ERR_OUT_OF_BOUNDS);
+
+    printf("PASS test_secure_ota_integer_overflow\n");
+    return 0;
+}
+
 int main(void) {
     printf("=== Secure OTA Unit Tests ===\n");
     int failures = 0;
@@ -339,6 +363,7 @@ int main(void) {
     failures += test_secure_ota_wrong_key(pkey);
     failures += test_secure_ota_bounds();
     failures += test_secure_ota_null_params();
+    failures += test_secure_ota_integer_overflow();
     
     free(pub_key_pem);
     EVP_PKEY_free(pkey);

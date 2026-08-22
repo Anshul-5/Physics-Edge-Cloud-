@@ -44,12 +44,47 @@ static void test_header_magic_validation()
     printf("PASS: test_header_magic_validation\n");
 }
 
+static void test_full_header_validation()
+{
+    ota_header_t hdr;
+    memset(&hdr, 0, sizeof(hdr));
+    hdr.magic = OTA_MAGIC_HEADER;
+    hdr.security_version = 1;
+    hdr.payload_size = 500;
+
+    // Valid header and sufficient buffer
+    size_t valid_image_len = sizeof(ota_header_t) + 500;
+    assert(ota_validate_header(&hdr, valid_image_len) == OTA_HDR_OK);
+
+    // NULL header
+    assert(ota_validate_header(nullptr, valid_image_len) == OTA_HDR_ERR_NULL);
+
+    // Buffer smaller than header struct
+    assert(ota_validate_header(&hdr, sizeof(ota_header_t) - 1) == OTA_HDR_ERR_OUT_OF_BOUNDS);
+
+    // Bad magic
+    hdr.magic = 0x12345678;
+    assert(ota_validate_header(&hdr, valid_image_len) == OTA_HDR_ERR_BAD_MAGIC);
+    hdr.magic = OTA_MAGIC_HEADER;
+
+    // Zero payload size
+    hdr.payload_size = 0;
+    assert(ota_validate_header(&hdr, valid_image_len) == OTA_HDR_ERR_BAD_SIZE);
+
+    // Payload size exceeds available buffer
+    hdr.payload_size = 600;
+    assert(ota_validate_header(&hdr, valid_image_len) == OTA_HDR_ERR_BAD_SIZE);
+
+    printf("PASS: test_full_header_validation\n");
+}
+
 int main()
 {
     printf("=== OTA Security & Anti-Rollback Unit Tests ===\n");
     test_anti_rollback_valid();
     test_anti_rollback_violation();
     test_header_magic_validation();
+    test_full_header_validation();
     printf("=== Results: 0 failures ===\n");
     return 0;
 }
