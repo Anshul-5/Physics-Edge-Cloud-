@@ -9,7 +9,7 @@ This document provides a cryptographic and test-validation transcript of the phy
 - **Architecture:** AMD64
 - **Compiler Version:** gcc (MinGW.org GCC-6.3.0-1) 6.3.0
 - **Python Version:** 3.13.14
-- **Verification Timestamp:** 2026-08-21 19:18:14 UTC
+- **Verification Timestamp:** 2026-08-21 19:32:58 UTC
 
 ---
 
@@ -17,14 +17,14 @@ This document provides a cryptographic and test-validation transcript of the phy
 
 | Component Layer | Compilation | Tests Passed | Tests Failed | Execution Latency | Status |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **Downscaler** | ✓ Success | 5 | 0 | 435.191 ms | 🟢 PASS |
-| **Optical Flow** | ✓ Success | 7 | 0 | 1029.775 ms | 🟢 PASS |
-| **Homography** | ✓ Success | 11 | 0 | 339.664 ms | 🟢 PASS |
-| **Jerk Baseline** | ✓ Success | 1 | 0 | 426.018 ms | 🟢 PASS |
+| **Downscaler** | ✓ Success | 5 | 0 | 315.600 ms | 🟢 PASS |
+| **Optical Flow** | ✓ Success | 7 | 0 | 1047.453 ms | 🟢 PASS |
+| **Homography** | ✓ Success | 12 | 0 | 264.642 ms | 🟢 PASS |
+| **Jerk Baseline** | ✓ Success | 1 | 0 | 230.689 ms | 🟢 PASS |
 
 ### Overall Verification Summary: **PASSED**
-- **Total Test Cases Executed:** 24
-- **Total Passed:** 24
+- **Total Test Cases Executed:** 25
+- **Total Passed:** 25
 - **Total Failed:** 0
 
 ---
@@ -71,6 +71,7 @@ PASS test_acceleration
 PASS test_ewma_smoothing
 PASS test_null_inputs
 PASS test_motion_energy
+PASS test_time_to_collision
 
 === Results: 0 failures ===
 ```

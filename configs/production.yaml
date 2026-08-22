@@ -1,0 +1,95 @@
+# ============================================================
+# PhysEdge-Cloud Production Deployment Configuration
+# ============================================================
+
+version: "1.0.0"
+environment: "production"
+
+# Tier 1: L1 Edge Gate (ESP32-S3 Firmware)
+edge:
+  camera:
+    frame_width: 160
+    frame_height: 120
+    target_fps: 25
+  macroblocks:
+    grid_cols: 10
+    grid_rows: 7
+    block_size_px: 16
+  kinematics:
+    jerk_baseline_alpha: 0.10
+    default_surprise_threshold: 150.0
+    ttc_divergence_ceiling_sec: 999.0
+    motion_energy:
+      lambda1_velocity: 1.0
+      lambda2_acceleration: 0.5
+      lambda3_jerk: 0.2
+      v_ref_mps: 10.0
+      a_ref_mps2: 5.0
+      j_ref_mps3: 2.5
+  buffer:
+    psram_circular_buffer_capacity: 128
+    high_watermark_ratio: 0.85
+
+# Tier 2: L2 Regional Node (Edge Gateway & Ingestion)
+regional_node:
+  grpc:
+    host: "0.0.0.0"
+    port: 50051
+    max_message_size_mb: 16
+  priority_queue:
+    capacity: 1000
+    alert_suspicion_threshold: 0.70
+  models:
+    yolo_model_path: "models/yolov8n.pt"
+    blazepose_model_complexity: 1
+  backpressure:
+    max_pending_frames: 500
+    drop_policy: "ABSTAIN_LOW_PRIORITY"
+
+# Tier 3: L3/L4/L5/L6 Central Cloud Engine
+cloud_engine:
+  orchestrator:
+    lagrangian_cost_multiplier: 0.35
+    max_e2e_latency_sla_ms: 100.0
+  graph_spectral:
+    diffusion_factor: 0.20
+    fiedler_instability_threshold: 0.10
+    pedestrian_sigma_spatial: 0.50
+    stationary_velocity_epsilon: 0.0001
+  memory_autoencoder:
+    latent_dim: 128
+    memory_slots: 500
+    shrinkage_threshold: 0.005
+  crop_opinion_pool:
+    min_variance_weight: 0.05
+    conformal_alpha_coverage: 0.05
+  storage:
+    postgres_pgvector:
+      host: "localhost"
+      port: 5432
+      database: "physedge"
+      embedding_dim: 256
+      hnsw_m: 16
+      hnsw_ef_construction: 64
+    merkle_log:
+      hash_algorithm: "sha256"
+      auto_checkpoint_interval: 100
+  privacy:
+    laplace_epsilon: 1.0
+    grid_coarsening_step: 64
+
+# Tier 4: L7/L8 Continuous Lifecycle & Delivery
+delivery:
+  retraining:
+    bootstrap_resamples: 500
+    confidence_gate_multiplier: 1.96
+    negative_constraint_adaptation_rate: 0.15
+  canary:
+    stages_percent: [5, 20, 100]
+    sprt_alpha: 0.05
+    sprt_beta: 0.10
+    baseline_far: 0.02
+    unacceptable_far: 0.08
+  operations:
+    prometheus_metrics_port: 9090
+    alert_dispatch_sla_ms: 100.0

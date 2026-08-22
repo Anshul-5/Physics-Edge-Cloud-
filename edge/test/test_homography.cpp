@@ -263,7 +263,6 @@ static int test_null_inputs(void) {
 static int test_motion_energy(void) {
     const int GRID_COLS = 10;
     const int GRID_ROWS = 7;
-    const int MB_SIZE = 16;
     const int NUM_BLOCKS = GRID_COLS * GRID_ROWS;
 
     // Initialize 70 homography trackers
@@ -361,6 +360,65 @@ static int test_motion_energy(void) {
     return 0;
 }
 
+static int test_time_to_collision(void) {
+    float ttc = -1.0f;
+
+    // Test 1: Converging head-on (d=100m, v_rel=20m/s -> TTC=5.0s)
+    bool ok = homography_compute_ttc(0.0f, 0.0f, 10.0f, 0.0f,
+                                     100.0f, 0.0f, -10.0f, 0.0f,
+                                     &ttc);
+    if (!ok || fabsf(ttc - 5.0f) > 1e-3f) {
+        printf("FAIL: expected TTC=5.0s, got %f (ok=%d)\n", ttc, ok);
+        return 1;
+    }
+
+    // Test 2: Diverging entities (d=100m, moving apart -> TTC=999.0s)
+    ok = homography_compute_ttc(0.0f, 0.0f, -10.0f, 0.0f,
+                                100.0f, 0.0f, 10.0f, 0.0f,
+                                &ttc);
+    if (!ok || fabsf(ttc - 999.0f) > 1e-3f) {
+        printf("FAIL: expected diverging TTC=999.0s, got %f\n", ttc);
+        return 1;
+    }
+
+    // Test 3: Parallel motion (same velocity vector -> TTC=999.0s)
+    ok = homography_compute_ttc(0.0f, 0.0f, 10.0f, 0.0f,
+                                0.0f, 10.0f, 10.0f, 0.0f,
+                                &ttc);
+    if (!ok || fabsf(ttc - 999.0f) > 1e-3f) {
+        printf("FAIL: expected parallel TTC=999.0s, got %f\n", ttc);
+        return 1;
+    }
+
+    // Test 4: Stationary points (zero velocity -> TTC=999.0s)
+    ok = homography_compute_ttc(0.0f, 0.0f, 0.0f, 0.0f,
+                                20.0f, 20.0f, 0.0f, 0.0f,
+                                &ttc);
+    if (!ok || fabsf(ttc - 999.0f) > 1e-3f) {
+        printf("FAIL: expected stationary TTC=999.0s, got %f\n", ttc);
+        return 1;
+    }
+
+    // Test 5: Coincident entities (dist=0 -> TTC=0.0s)
+    ok = homography_compute_ttc(5.0f, 5.0f, 1.0f, 1.0f,
+                                5.0f, 5.0f, -1.0f, -1.0f,
+                                &ttc);
+    if (!ok || fabsf(ttc - 0.0f) > 1e-3f) {
+        printf("FAIL: expected coincident TTC=0.0s, got %f\n", ttc);
+        return 1;
+    }
+
+    // Test 6: Null pointer defensive guard
+    ok = homography_compute_ttc(0.0f, 0.0f, 1.0f, 0.0f, 10.0f, 0.0f, -1.0f, 0.0f, NULL);
+    if (ok != false) {
+        printf("FAIL: expected false on null pointer\n");
+        return 1;
+    }
+
+    printf("PASS test_time_to_collision\n");
+    return 0;
+}
+
 int main(void) {
     printf("=== Homography & Kinematics Unit Tests ===\n");
     int failures = 0;
@@ -376,6 +434,7 @@ int main(void) {
     failures += test_ewma_smoothing();
     failures += test_null_inputs();
     failures += test_motion_energy();
+    failures += test_time_to_collision();
 
     printf("\n=== Results: %d failures ===\n", failures);
     return failures;

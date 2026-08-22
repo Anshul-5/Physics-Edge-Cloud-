@@ -1,6 +1,7 @@
 import networkx as nx
 import numpy as np
 import scipy.sparse as sp
+from typing import Tuple, List
 
 class SpatialGraphEngine:
     def __init__(self):
@@ -119,6 +120,134 @@ class SpatialGraphEngine:
         # Instability when Fiedler eigenvalue decreases significantly (representing clustering/splitting)
         delta_lambda = prev_fiedler - fiedler_val
         is_unstable = delta_lambda > threshold
-        
         return fiedler_val, is_unstable
+
+
+class PedestrianInteractionGraph:
+    """
+    Spatiotemporal Interaction Graph for individual entities (pedestrians) within a camera view (L3 Engine).
+    
+    Computes Gaussian proximity and cosine-motion-similarity weighted adjacency:
+        A_pq = exp(-sigma_1 ||X_p - X_q||^2) * max(0, cos(theta_motion))
+    with division-by-zero guards on stationary/near-stationary velocities:
+        cos(theta_motion) = 0 if ||v_p|| < eps or ||v_q|| < eps
+    """
+    def __init__(self, sigma_1: float = 0.5, eps: float = 1e-4):
+        self.sigma_1 = sigma_1
+        self.eps = eps
+        self.entities = {} # entity_id -> {'pos': np.ndarray, 'vel': np.ndarray}
+        self.prev_fiedler = None
+
+    def add_pedestrian(self, entity_id, position, velocity):
+        """
+        Add or update pedestrian state.
+        
+        Args:
+            entity_id (str): Unique pedestrian identifier.
+            position (array-like): [x, y] ground-plane coordinate (meters).
+            velocity (array-like): [vx, vy] ground-plane velocity (m/s).
+        """
+        self.entities[entity_id] = {
+            'pos': np.asarray(position, dtype=float),
+            'vel': np.asarray(velocity, dtype=float)
+        }
+
+    def clear(self):
+        self.entities.clear()
+
+    def build_adjacency_matrix(self) -> Tuple[np.ndarray, List]:
+        """
+        Builds the symmetric/directed spatial-motion adjacency matrix A_pq.
+        
+        Returns:
+            Tuple[np.ndarray, List]: (Adjacency Matrix, entity_ids)
+        """
+        entity_ids = list(self.entities.keys())
+        n = len(entity_ids)
+        if n == 0:
+            return np.empty((0, 0)), []
+        if n == 1:
+            return np.zeros((1, 1)), entity_ids
+
+        A = np.zeros((n, n), dtype=float)
+        for i in range(n):
+            p_i = self.entities[entity_ids[i]]['pos']
+            v_i = self.entities[entity_ids[i]]['vel']
+            norm_vi = np.linalg.norm(v_i)
+
+            for j in range(i + 1, n):
+                p_j = self.entities[entity_ids[j]]['pos']
+                v_j = self.entities[entity_ids[j]]['vel']
+                norm_vj = np.linalg.norm(v_j)
+
+                # 1. Gaussian spatial proximity term
+                dist_sq = float(np.sum((p_i - p_j) ** 2))
+                spatial_weight = np.exp(-self.sigma_1 * dist_sq)
+
+                # 2. Motion cosine similarity with division-by-zero protection
+                if norm_vi < self.eps or norm_vj < self.eps:
+                    cos_theta = 0.0
+                else:
+                    dot_prod = float(np.dot(v_i, v_j))
+                    cos_theta = max(0.0, dot_prod / (norm_vi * norm_vj))
+
+                weight = float(spatial_weight * cos_theta)
+                A[i, j] = weight
+                A[j, i] = weight
+
+        return A, entity_ids
+
+    def compute_normalized_laplacian(self, A: np.ndarray) -> np.ndarray:
+        """
+        Computes the Normalized Graph Laplacian:
+            L = I - D^(-1/2) A D^(-1/2)
+        """
+        n = A.shape[0]
+        if n == 0:
+            return np.empty((0, 0))
+        if n == 1:
+            return np.zeros((1, 1))
+
+        d = np.sum(A, axis=1)
+        d_inv_sqrt = np.zeros(n, dtype=float)
+        for i in range(n):
+            if d[i] > self.eps:
+                d_inv_sqrt[i] = 1.0 / np.sqrt(d[i])
+
+        D_inv_sqrt = np.diag(d_inv_sqrt)
+        L = np.eye(n) - D_inv_sqrt @ A @ D_inv_sqrt
+        return L
+
+    def compute_fiedler_eigenvalue(self, L: np.ndarray) -> float:
+        """
+        Computes lambda_2 (Fiedler eigenvalue, algebraic connectivity).
+        """
+        if L.shape[0] < 2:
+            return 0.0
+        try:
+            eigenvalues = np.linalg.eigvalsh(L)
+            eigenvalues.sort()
+            return float(eigenvalues[1]) if len(eigenvalues) > 1 else 0.0
+        except Exception:
+            return 0.0
+
+    def detect_spectral_instability(self, threshold: float = 0.1) -> Tuple[float, bool]:
+        """
+        Calculates the current Fiedler eigenvalue and flags instability
+        if Delta lambda_2 = lambda_2(t-1) - lambda_2(t) > threshold.
+        """
+        A, _ = self.build_adjacency_matrix()
+        L = self.compute_normalized_laplacian(A)
+        fiedler = self.compute_fiedler_eigenvalue(L)
+
+        if self.prev_fiedler is None:
+            self.prev_fiedler = fiedler
+            return fiedler, False
+
+        delta_lambda = self.prev_fiedler - fiedler
+        is_unstable = delta_lambda > threshold
+        self.prev_fiedler = fiedler
+
+        return fiedler, is_unstable
+
 

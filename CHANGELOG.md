@@ -8,6 +8,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 ### Added
+- Implemented Time-to-Collision (TTC) calculations with division-by-zero safeguards for L1 Edge (#112)
+- Implemented Spatiotemporal Pedestrian Interaction Graph and spectral instability detector for L3 Engine (#113)
+- Added End-to-End Evaluation & Benchmark Harness, kinematics reprojection tests, and production configuration (#111)
 - Implemented flow-confidence-weighted non-dimensionalized Motion Energy (E) calculations on the L1 edge and integrated with L2 telemetry gRPC streaming (#115)
 - Implemented Closed-Loop Negative Constraints Pipeline, Edge Parameter Streamer, and L1 Jerk Baseline adjustment parser for L7 Retraining (#27)
 - Implemented Operations Alert Dispatcher, Prometheus Fleet Metrics, and Grafana Dashboard for L8/L9 Operations (#30)
