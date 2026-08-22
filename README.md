@@ -2,11 +2,11 @@
 
 [![CI](https://github.com/Anshul-5/Physics-Edge-Cloud-/actions/workflows/ci.yml/badge.svg)](https://github.com/Anshul-5/Physics-Edge-Cloud-/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/Anshul-5/Physics-Edge-Cloud-/actions/workflows/codeql.yml/badge.svg)](https://github.com/Anshul-5/Physics-Edge-Cloud-/actions/workflows/codeql.yml)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
-[![ESP-IDF](https://img.shields.io/badge/ESP--IDF-v5.1+-orange.svg)](https://docs.espressif.com/projects/esp-idf/en/v5.1/esp32s3/)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/Anshul-5/Physics-Edge-Cloud-/badge)](https://securityscorecards.dev/viewer/?uri=github.com/Anshul-5/Physics-Edge-Cloud-)
-[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/github/Anshul-5/Physics-Edge-Cloud-/badge)](https://www.bestpractices.dev/projects/github/Anshul-5/Physics-Edge-Cloud-)
+[![OpenSSF Best Practices](https://img.shields.io/badge/OpenSSF-Best%20Practices-blue.svg)](https://www.bestpractices.dev/)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![ESP-IDF](https://img.shields.io/badge/ESP--IDF-v5.1+-orange.svg)](https://docs.espressif.com/projects/esp-idf/en/v5.1/esp32s3/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 > An Uncertainty-Calibrated, Physics-Informed Edge-to-Cloud Cascade for Real-Time Video Anomaly Detection
 
