@@ -67,6 +67,16 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - docs: update changelog [skip ci] ([dfc9684](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/dfc9684814dcd97602fe4008a15ba48d03ad3e80)) @github-actions[bot]
 
 ### Changed
+- feat(regional): harden L2 telemetry ingestion, fusion & backpressure (#162)
+
+- Support mTLS on gRPC server & warn on insecure port (Issue #119)
+- Prevent NaN alert suppression and stabilize fusion math (Issue #125)
+- Protect worker thread from unhandled exceptions (Issue #127)
+- Bound PriorityQueue capacity and prevent memory DoS (Issue #128)
+- Support local YOLO weights and digest verification (Issue #136)
+- Cap JPEG size and bounds check decoded dimensions (Issue #137)
+- Validate FusionEngine temperature parameter (Issue #142)
+- Fix backpressure off-by-one and NaN fail-closed handling (Issue #148) ([ff81763](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/ff81763ff7cfa7acc57b73fbe697bcc201ab78d5)) @Archit Mittal
 - docs(readme): style OpenSSF Best Practices badge with Shields.io (#163) ([26d6196](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/26d6196e45a659eca43725fec127cc6a4c3a70d6)) @Purvansh Joshi
 - feat(edge): harden L1 firmware security and correctness (#160)
 
