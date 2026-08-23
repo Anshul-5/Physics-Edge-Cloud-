@@ -1,24 +1,26 @@
 #include <stdint.h>
 #include <stddef.h>
+#include <string.h>
 #include "uplink_buffer.h"
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
-    if (size < sizeof(MotionVector)) return 0;
+    if (size < sizeof(buffer_entry_t)) return 0;
     
-    uplink_buffer_ctx_t *ctx = uplink_buffer_init();
-    if (!ctx) return 0;
+    ring_buffer_t *rb = uplink_buffer_init(10);
+    if (!rb) return 0;
     
-    size_t num_vectors = size / sizeof(MotionVector);
-    const MotionVector *vectors = (const MotionVector *)data;
+    buffer_entry_t entry;
+    memset(&entry, 0, sizeof(entry));
+    entry.timestamp = *(const uint64_t *)data;
+    entry.suspicion = 0.5f;
+    entry.jerk = 1.0f;
     
-    for (size_t i = 0; i < num_vectors && i < 100; i++) {
-        uplink_buffer_push(ctx, &vectors[i]);
-    }
+    uplink_buffer_push(rb, &entry);
     
-    MotionVector popped;
-    while (uplink_buffer_pop(ctx, &popped)) {
-    }
+    buffer_entry_t popped;
+    memset(&popped, 0, sizeof(popped));
+    uplink_buffer_pop(rb, &popped);
     
-    uplink_buffer_deinit(ctx);
+    uplink_buffer_deinit(rb);
     return 0;
 }

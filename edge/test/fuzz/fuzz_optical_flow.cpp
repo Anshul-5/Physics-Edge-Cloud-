@@ -3,17 +3,19 @@
 #include <string.h>
 #include "optical_flow.h"
 
+#define OF_FRAME_SIZE (OF_WIDTH * OF_HEIGHT)
+
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
-    if (size < DOWNSCALED_BUF_SIZE * 2) return 0;
+    if (size < OF_FRAME_SIZE * 2) return 0;
     
-    const uint8_t *prev = data;
-    const uint8_t *curr = data + DOWNSCALED_BUF_SIZE;
+    const uint8_t *curr = data;
+    const uint8_t *prev = data + OF_FRAME_SIZE;
     
     optical_flow_ctx_t *ctx = optical_flow_init();
     if (ctx) {
-        MotionVector vectors[FLOW_GRID_COLS * FLOW_GRID_ROWS];
-        uint32_t flow_count = 0;
-        optical_flow_compute(ctx, prev, curr, vectors, &flow_count);
+        FlowResult result;
+        memset(&result, 0, sizeof(result));
+        optical_flow_compute(ctx, curr, prev, &result);
         optical_flow_deinit(ctx);
     }
     

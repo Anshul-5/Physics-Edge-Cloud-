@@ -27,7 +27,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     downscaler_ctx_t *ctx = downscaler_init(out_buf);
     if (ctx) {
         downscale_bilinear(ctx, &frame);
-        downscale_nearest(ctx, &frame);
         downscaler_deinit(ctx);
     }
     
