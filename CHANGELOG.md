@@ -8,6 +8,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 ### Security
+- Pinned all Python dependencies to fixed, audited versions and generated lockfiles resolving 23 OSV advisories (#152, #153)
 - Hardened forensic Merkle log hash chain with length-delimited domain-separated encoding to prevent boundary-shifting collisions (#118)
 - Hardened CROP risk pooling and Conformal Prediction against NaN/non-finite alert suppression and variance poisoning (#126)
 - Added strict UUID validation to prevent MQTT topic injection and namespace escapes on constraint downlinks (#130)
@@ -33,6 +34,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Optimized AdaptiveConformalPredictor.get_quantile with O(N) selection algorithm via np.partition (#146)
 
 ### Added
+- Added libFuzzer fuzzing harnesses for secure OTA, downscaler, optical flow, and uplink buffer with ClusterFuzzLite integration (#155)
 - Added @archittmittal as repository code owner in .github/CODEOWNERS and CONTRIBUTING.md
 - Added CONTRIBUTING.md with OpenSSF peer review guidelines and Conventional Commit specifications (#154)
 - Updated .github/CODEOWNERS covering regional node, cloud engine, and firmware OTA paths (#154)
