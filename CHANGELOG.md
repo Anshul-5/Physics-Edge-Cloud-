@@ -22,10 +22,15 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Added OpenSSF Best Practices Program badge to README (#122)
 
 ### Fixed
+- Enabled strict failure exit codes on cppcheck and clang-format static analysis in CI (#158)
+- Fixed action commit SHA in stale workflow for scheduled stale maintenance (#151)
 - Fixed NaN suppression in FusionEngine Bayesian log-odds updating and added temperature validation
 - Fixed worker thread exception resilience in PriorityStreamQueue process loop
 - Fixed off-by-one threshold and NaN fail-closed handling in BackpressureManager
 - Fixed GitHub Pages deployment workflow with verified immutable action commit SHAs (#151)
+
+### Performance
+- Optimized AdaptiveConformalPredictor.get_quantile with O(N) selection algorithm via np.partition (#146)
 
 ### Added
 - Hardened L1 firmware against integer overflows, signed SIMD shift, NaN corruption, and memory safety vulnerabilities (#160)
