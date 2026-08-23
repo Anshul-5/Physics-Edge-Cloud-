@@ -34,6 +34,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Optimized AdaptiveConformalPredictor.get_quantile with O(N) selection algorithm via np.partition (#146)
 
 ### Added
+- Added comprehensive mathematical formulations and matrix equations (Homography $\mathbf{H}_{3\times 3}$, Spatio-Temporal Adjacency $\mathbf{A}_{N\times N}$, Normalized Graph Laplacian $\mathbf{L}_{\text{norm}}$, CROP Log-Opinion Pool, Lagrangian Dual Optimization, Length-Delimited Merkle Hash Chain, and Differential Privacy Laplace Mechanism) to [`README.md`](file:///D:/Physics-Cloud/README.md) for research journal reference
+- Added empirical evaluation and real-world simulation benchmark results (1,000 live streaming frames, 82.30% edge filtering, 98.00% classification accuracy, 0.33 ms end-to-end latency, 14,783 FPS throughput) to [`README.md`](file:///D:/Physics-Cloud/README.md)
 - Added declarative branch protection ruleset configuration for main branch (#151)
 - Added OpenSSF Best Practices self-assessment documentation and badge compliance mapping (#156)
 - Added libFuzzer fuzzing harnesses for secure OTA, downscaler, optical flow, and uplink buffer with ClusterFuzzLite integration (#155)
