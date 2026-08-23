@@ -1,3 +1,4 @@
+# Pinned and audited lockfile for regional_node (OpenSSF compliant)
 grpcio==1.70.0
 grpcio-tools==1.70.0
 protobuf==5.29.3
