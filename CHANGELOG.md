@@ -33,6 +33,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Optimized AdaptiveConformalPredictor.get_quantile with O(N) selection algorithm via np.partition (#146)
 
 ### Added
+- Added @archittmittal as repository code owner in .github/CODEOWNERS and CONTRIBUTING.md
 - Added CONTRIBUTING.md with OpenSSF peer review guidelines and Conventional Commit specifications (#154)
 - Updated .github/CODEOWNERS covering regional node, cloud engine, and firmware OTA paths (#154)
 - Hardened L1 firmware against integer overflows, signed SIMD shift, NaN corruption, and memory safety vulnerabilities (#160)
