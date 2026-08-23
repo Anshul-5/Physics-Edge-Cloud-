@@ -34,6 +34,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Optimized AdaptiveConformalPredictor.get_quantile with O(N) selection algorithm via np.partition (#146)
 
 ### Added
+- Added declarative branch protection ruleset configuration for main branch (#151)
+- Added OpenSSF Best Practices self-assessment documentation and badge compliance mapping (#156)
 - Added libFuzzer fuzzing harnesses for secure OTA, downscaler, optical flow, and uplink buffer with ClusterFuzzLite integration (#155)
 - Added @archittmittal as repository code owner in .github/CODEOWNERS and CONTRIBUTING.md
 - Added CONTRIBUTING.md with OpenSSF peer review guidelines and Conventional Commit specifications (#154)
