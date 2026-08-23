@@ -83,6 +83,11 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - docs: update changelog [skip ci] ([dfc9684](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/dfc9684814dcd97602fe4008a15ba48d03ad3e80)) @github-actions[bot]
 
 ### Changed
+- chore(governance): add archittmittal to CODEOWNERS and maintainers (#167)
+
+* chore(governance): add archittmittal to CODEOWNERS and maintainers
+
+* docs(changelog): note archittmittal codeowner addition ([4980af7](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/4980af755d4ba7766d1900166c28967670bcc6c7)) @Purvansh Joshi
 - docs(governance): add CONTRIBUTING guidelines and update CODEOWNERS (#166) ([8fe2c92](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/8fe2c9260e168af39a708b5fa0d4eaf2018723c6)) @Purvansh Joshi
 - perf(cloud): optimize quantile selection and enforce CI static analysis (#165)
 
