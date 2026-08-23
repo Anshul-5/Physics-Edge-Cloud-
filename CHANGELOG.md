@@ -75,6 +75,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - docs: update changelog [skip ci] ([dfc9684](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/dfc9684814dcd97602fe4008a15ba48d03ad3e80)) @github-actions[bot]
 
 ### Changed
+- feat(cloud): harden cloud engine security, storage and feedback (#164) ([282b754](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/282b75416952737d2e08d3b4ac04c879c408799c)) @Purvansh Joshi
 - feat(regional): harden L2 telemetry ingestion, fusion & backpressure (#162)
 
 - Support mTLS on gRPC server & warn on insecure port (Issue #119)
