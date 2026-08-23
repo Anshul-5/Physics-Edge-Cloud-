@@ -13,55 +13,55 @@
 # ============================================================
 # Default owners for everything
 # ============================================================
-* @Anshul-5 @purvanshjoshi
+* @Anshul-5 @purvanshjoshi @archittmittal
 
 # ============================================================
 # CI/CD & DevOps
 # ============================================================
-.github/ @Anshul-5 @purvanshjoshi
+.github/ @Anshul-5 @purvanshjoshi @archittmittal
 
 # ============================================================
 # Documentation
 # ============================================================
-/docs/ @Anshul-5 @purvanshjoshi
-*.md @Anshul-5 @purvanshjoshi
+/docs/ @Anshul-5 @purvanshjoshi @archittmittal
+*.md @Anshul-5 @purvanshjoshi @archittmittal
 
 # ============================================================
 # ESP32-S3 Firmware (L1 Edge Gate)
 # ============================================================
 
 # Camera Capture Driver
-/edge/components/camera_capture/ @Anshul-5 @purvanshjoshi
-/edge/components/camera_capture/idf_component.yml @Anshul-5 @purvanshjoshi
+/edge/components/camera_capture/ @Anshul-5 @purvanshjoshi @archittmittal
+/edge/components/camera_capture/idf_component.yml @Anshul-5 @purvanshjoshi @archittmittal
 
 # Downscaler Component
-/edge/components/downscaler/ @Anshul-5 @purvanshjoshi
+/edge/components/downscaler/ @Anshul-5 @purvanshjoshi @archittmittal
 
 # Optical Flow Component
-/edge/components/optical_flow/ @Anshul-5 @purvanshjoshi
+/edge/components/optical_flow/ @Anshul-5 @purvanshjoshi @archittmittal
 
 # Main Application
-/edge/main/ @Anshul-5 @purvanshjoshi
+/edge/main/ @Anshul-5 @purvanshjoshi @archittmittal
 
 # Build Configuration
-/edge/CMakeLists.txt @Anshul-5 @purvanshjoshi
-/edge/sdkconfig.defaults @Anshul-5 @purvanshjoshi
+/edge/CMakeLists.txt @Anshul-5 @purvanshjoshi @archittmittal
+/edge/sdkconfig.defaults @Anshul-5 @purvanshjoshi @archittmittal
 
 # ============================================================
 # Unit Tests
 # ============================================================
-/edge/test/ @Anshul-5 @purvanshjoshi
+/edge/test/ @Anshul-5 @purvanshjoshi @archittmittal
 
 # ============================================================
 # L2 Regional Node & L3 Cloud Engine
 # ============================================================
-/regional_node/ @Anshul-5 @purvanshjoshi
-/cloud_engine/ @Anshul-5 @purvanshjoshi
-/edge/components/secure_ota/ @Anshul-5 @purvanshjoshi
-/edge/components/ota_security/ @Anshul-5 @purvanshjoshi
+/regional_node/ @Anshul-5 @purvanshjoshi @archittmittal
+/cloud_engine/ @Anshul-5 @purvanshjoshi @archittmittal
+/edge/components/secure_ota/ @Anshul-5 @purvanshjoshi @archittmittal
+/edge/components/ota_security/ @Anshul-5 @purvanshjoshi @archittmittal
 
 # ============================================================
 # Security & Compliance
 # ============================================================
-SECURITY.md @Anshul-5 @purvanshjoshi
-LICENSE @Anshul-5 @purvanshjoshi
+SECURITY.md @Anshul-5 @purvanshjoshi @archittmittal
+LICENSE @Anshul-5 @purvanshjoshi @archittmittal

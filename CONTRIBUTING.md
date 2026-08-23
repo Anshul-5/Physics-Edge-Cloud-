@@ -34,7 +34,7 @@ This project adheres to the **OpenSSF Best Practices Program** standards. All co
 ## 2. Code Ownership & Areas of Responsibility
 
 Reviewers are assigned automatically via [.github/CODEOWNERS](.github/CODEOWNERS):
-- **Core Maintainers**: @Anshul-5, @purvanshjoshi
+- **Core Maintainers**: @Anshul-5, @purvanshjoshi, @archittmittal
 - **Critical Paths**: Firmware OTA (edge/components/secure_ota), Differential Privacy (cloud_engine/privacy.py), Forensic Storage (cloud_engine/storage.py), and CI/CD pipelines (.github/workflows/).
 
 ---
