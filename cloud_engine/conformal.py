@@ -27,17 +27,16 @@ class AdaptiveConformalPredictor:
     def get_quantile(self):
         """
         Computes the current quantile threshold q_{1-alpha_t} from the rolling residuals.
+        Uses an O(N) selection algorithm (np.partition) instead of an O(N log N) full sort.
         """
         if not self.residuals:
             return self.default_quantile
         
-        # Sort residuals and get the (1 - alpha_t) quantile
-        # Quantile index is ceil((1 - alpha_t) * N) - 1
-        residuals_sorted = sorted(self.residuals)
-        n = len(residuals_sorted)
+        arr = np.fromiter(self.residuals, dtype=float)
+        n = arr.size
         idx = int(np.ceil((1.0 - self.alpha_t) * n)) - 1
         idx = max(0, min(n - 1, idx))
-        return residuals_sorted[idx]
+        return float(np.partition(arr, idx)[idx])
 
     def check_boundary(self, pooled_risk, quantile_threshold=None):
         """

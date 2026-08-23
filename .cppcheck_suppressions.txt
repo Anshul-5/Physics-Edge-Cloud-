@@ -24,3 +24,7 @@ uninitvar
 uninitMemberVar
 uninitdata
 uninitStruct
+unusedFunction
+unmatchedSuppression
+missingInclude
+syntaxError

@@ -28,14 +28,15 @@ jobs:
 
       - name: Check C/C++ formatting
         run: |
-          find edge/ -name '*.c' -o -name '*.cpp' -o -name '*.h' | head -20 | xargs clang-format --dry-run --Werror 2>&1 || true
+          find edge/ \( -name '*.c' -o -name '*.cpp' -o -name '*.h' \) -print0 | xargs -0 clang-format --dry-run --Werror
 
       - name: Static analysis with cppcheck
         run: |
           cppcheck --enable=warning,style,performance \
                    --suppressions-list=.cppcheck_suppressions.txt \
+                   --inline-suppr \
                    --error-exitcode=1 \
-                   edge/components/ edge/main/ 2>&1 || true
+                   edge/components/ edge/main/
 
   # ============================================================
   # Job 2: Build ESP32-S3 Firmware (ESP-IDF)
