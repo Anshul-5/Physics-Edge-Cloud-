@@ -53,6 +53,14 @@
 /edge/test/ @Anshul-5 @purvanshjoshi
 
 # ============================================================
+# L2 Regional Node & L3 Cloud Engine
+# ============================================================
+/regional_node/ @Anshul-5 @purvanshjoshi
+/cloud_engine/ @Anshul-5 @purvanshjoshi
+/edge/components/secure_ota/ @Anshul-5 @purvanshjoshi
+/edge/components/ota_security/ @Anshul-5 @purvanshjoshi
+
+# ============================================================
 # Security & Compliance
 # ============================================================
 SECURITY.md @Anshul-5 @purvanshjoshi

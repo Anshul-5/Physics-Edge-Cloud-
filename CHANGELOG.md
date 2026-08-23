@@ -33,6 +33,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Optimized AdaptiveConformalPredictor.get_quantile with O(N) selection algorithm via np.partition (#146)
 
 ### Added
+- Added CONTRIBUTING.md with OpenSSF peer review guidelines and Conventional Commit specifications (#154)
+- Updated .github/CODEOWNERS covering regional node, cloud engine, and firmware OTA paths (#154)
 - Hardened L1 firmware against integer overflows, signed SIMD shift, NaN corruption, and memory safety vulnerabilities (#160)
 - Implemented Time-to-Collision (TTC) calculations with division-by-zero safeguards for L1 Edge (#112)
 - Implemented Spatiotemporal Pedestrian Interaction Graph and spectral instability detector for L3 Engine (#113)
