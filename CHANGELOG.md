@@ -80,6 +80,15 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - docs: update changelog [skip ci] ([dfc9684](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/dfc9684814dcd97602fe4008a15ba48d03ad3e80)) @github-actions[bot]
 
 ### Changed
+- perf(cloud): optimize quantile selection and enforce CI static analysis (#165)
+
+* perf(cloud): optimize quantile selection and enforce CI static analysis
+
+* style(ci): add .clang-format config and scope C/C++ format check
+
+* fix(ci): adjust clang-format dry-run and enforce strict cppcheck error codes
+
+* fix(ci): suppress unusedStructMember and constParameter in cppcheck ([286cc8f](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/286cc8febf2854a48f3003a477b2d09bb7611e4a)) @Purvansh Joshi
 - feat(cloud): harden cloud engine security, storage and feedback (#164) ([282b754](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/282b75416952737d2e08d3b4ac04c879c408799c)) @Purvansh Joshi
 - feat(regional): harden L2 telemetry ingestion, fusion & backpressure (#162)
 
