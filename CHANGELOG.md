@@ -75,6 +75,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
 ### Documentation
+- docs: add mathematical matrix formulations and real-world benchmark metrics to README ([62588c0](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/62588c06c9f59cbbb198c29b59fe0805854606b5)) @Purvansh Joshi
 - docs: update changelog [skip ci] ([d56d2d6](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/d56d2d6481cb6e052eb4c8c6ab72b51198fabb4b)) @github-actions[bot]
 - docs: update changelog [skip ci] ([cc0f84a](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/cc0f84a2db8748895296b7bdf273b53ac238a101)) @github-actions[bot]
 - docs: update changelog [skip ci] ([d168fa6](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/d168fa640ad991d99efccf6b7e603003d033938d)) @github-actions[bot]
