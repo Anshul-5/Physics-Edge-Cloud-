@@ -68,6 +68,26 @@ def test_crop_pooling_and_latency():
     assert pooled_risk > 0.5
     assert pooled_risk <= 0.8
 
+def test_crop_nan_and_conformal_fail_closed():
+    sources = ["source_a", "source_b"]
+    crop = CROP(sources)
+    predictor = AdaptiveConformalPredictor()
+    
+    # 1. NaN in one source should be dropped, pooling over remaining valid sources
+    pooled = crop.pool_risks({"source_a": float('nan'), "source_b": 0.99})
+    assert np.isclose(pooled, 0.99, atol=1e-3)
+    
+    # 2. Non-finite score in check_boundary should fail-closed (return True)
+    assert predictor.check_boundary(float('nan')) is True
+    assert predictor.check_boundary(float('inf')) is True
+    assert predictor.check_boundary(None) is True
+    
+    # 3. Non-finite in update should not poison residuals deque
+    initial_len = len(predictor.residuals)
+    predictor.update(float('nan'), 1.0)
+    assert len(predictor.residuals) == initial_len
+
+
 def test_conformal_predictor_coverage():
     # Targets
     alpha = 0.05

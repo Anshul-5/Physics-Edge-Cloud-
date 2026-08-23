@@ -4,31 +4,37 @@ import hashlib
 import json
 import logging
 import uuid
+import struct
+import re
+import math
 import numpy as np
 
+_SHA256_HEX = re.compile(r'\A[0-9a-f]{64}\Z')
+
 class PostgreSQLVectorStore:
-    def __init__(self, db_conn=None, host=None, dbname=None, user=None, password=None, port=None):
+    def __init__(self, db_conn=None, host=None, dbname=None, user=None, password=None, port=None, allow_memory_fallback=False):
         """
         Manages PostgreSQL client connection and operations for pgvector.
-        Uses environment variables or direct arguments for configuration,
-        supporting mock/fallback mode when no DB is available.
+        Uses environment variables or direct arguments for configuration.
+        Falling back to in-memory mode requires explicit opt-in via allow_memory_fallback=True.
         """
         self.host = host or os.getenv("DB_HOST", "localhost")
         self.dbname = dbname or os.getenv("DB_NAME", "physedge")
         self.user = user or os.getenv("DB_USER", "postgres")
         self.password = password or os.getenv("DB_PASSWORD", "")
         self.port = port or os.getenv("DB_PORT", "5432")
+        self.allow_memory_fallback = allow_memory_fallback
         
         self.conn = db_conn
         self.logger = logging.getLogger("physedge.storage")
         
-        # In-memory fallback dictionary to simulate database for testing / when offline
+        # In-memory fallback dictionary to simulate database for testing
         self._fallback_store = []
         
     def connect(self):
         """
-        Connects to the PostgreSQL database. Falls back to in-memory mode if psycopg2 is missing
-        or connection fails.
+        Connects to the PostgreSQL database.
+        Raises RuntimeError if connection fails, unless allow_memory_fallback is True.
         """
         if self.conn is not None:
             return True
@@ -45,7 +51,9 @@ class PostgreSQLVectorStore:
             self.logger.info("Successfully connected to PostgreSQL database.")
             return True
         except Exception as e:
-            self.logger.warning(f"PostgreSQL connection failed: {e}. Operating in mock/fallback mode.")
+            if not self.allow_memory_fallback:
+                raise RuntimeError(f"PostgreSQL connection failed: {e}") from e
+            self.logger.warning(f"PostgreSQL connection failed: {e}. Operating in VOLATILE mock/fallback mode.")
             self.conn = None
             return False
 
@@ -91,21 +99,31 @@ class PostgreSQLVectorStore:
         Inserts an event embedding. 
         Validates inputs and uses parameterized queries to prevent SQL injection (OpenSSF Standard).
         """
-        # Validate inputs
-        if not isinstance(camera_uuid, (str, uuid.UUID)):
-            raise ValueError("camera_uuid must be a string or UUID.")
-        if len(embedding) != 256:
-            raise ValueError("Embedding must be a list/array of exactly 256 dimensions.")
-        if not isinstance(model_version, str) or len(model_version) > 64:
+        # Validate UUID
+        if isinstance(camera_uuid, uuid.UUID):
+            cam_str = str(camera_uuid)
+        else:
+            try:
+                cam_str = str(uuid.UUID(str(camera_uuid)))
+            except (ValueError, TypeError, AttributeError):
+                raise ValueError(f"camera_uuid must be a valid UUID, got {camera_uuid!r}")
+
+        # Validate embedding
+        if not isinstance(embedding, (list, tuple, np.ndarray)) or len(embedding) != 256:
+            raise ValueError("Embedding must be a numeric list/array of exactly 256 dimensions.")
+        
+        emb_list = [float(x) for x in embedding]
+        if not all(math.isfinite(x) for x in emb_list):
+            raise ValueError("Embedding contains non-finite (NaN/Inf) values.")
+
+        if not isinstance(model_version, str) or len(model_version) > 64 or not model_version:
             raise ValueError("Invalid model_version format.")
             
-        emb_list = list(embedding)
-        
         if self.conn is None:
             # Fallback mode
             record = {
                 "id": len(self._fallback_store) + 1,
-                "camera_uuid": str(camera_uuid),
+                "camera_uuid": cam_str,
                 "timestamp": timestamp,
                 "model_version": model_version,
                 "embedding": np.array(emb_list)
@@ -118,7 +136,7 @@ class PostgreSQLVectorStore:
                 cursor.execute("""
                     INSERT INTO event_embeddings (camera_uuid, timestamp, model_version, embedding)
                     VALUES (%s, %s, %s, %s) RETURNING id;
-                """, (str(camera_uuid), timestamp, model_version, emb_list))
+                """, (cam_str, timestamp, model_version, emb_list))
                 record_id = cursor.fetchone()[0]
             self.conn.commit()
             return record_id
@@ -131,10 +149,12 @@ class PostgreSQLVectorStore:
         Performs a cosine similarity search against event embeddings.
         Uses parameterized query to prevent SQL injection.
         """
-        if len(query_embedding) != 256:
+        if not isinstance(query_embedding, (list, tuple, np.ndarray)) or len(query_embedding) != 256:
             raise ValueError("Query embedding must be of size 256.")
             
-        q_list = list(query_embedding)
+        q_list = [float(x) for x in query_embedding]
+        if not all(math.isfinite(x) for x in q_list):
+            raise ValueError("Query embedding contains non-finite (NaN/Inf) values.")
         
         if self.conn is None:
             if not self._fallback_store:
@@ -194,6 +214,11 @@ class PostgreSQLVectorStore:
             raise RuntimeError(f"Search query failed: {e}")
 
 
+def _encode_field(s: str) -> bytes:
+    b = s.encode('utf-8')
+    return struct.pack('>I', len(b)) + b
+
+
 class EventBlock:
     def __init__(self, index, previous_hash, clip_hash, kinematics_data, model_hash, timestamp=None):
         self.index = index
@@ -206,9 +231,9 @@ class EventBlock:
         
     def calculate_hash(self):
         # Validate hex format for hashes to follow OpenSSF standards
-        self._validate_hex(self.previous_hash)
-        self._validate_hex(self.clip_hash)
-        self._validate_hex(self.model_hash)
+        self._validate_hex(self.previous_hash, "previous_hash")
+        self._validate_hex(self.clip_hash, "clip_hash")
+        self._validate_hex(self.model_hash, "model_hash")
         
         # Serialize kinematics deterministically
         if isinstance(self.kinematics_data, dict):
@@ -216,18 +241,21 @@ class EventBlock:
         else:
             kinematics_str = str(self.kinematics_data)
             
-        # Concatenate: B_{i-1} || ClipHash || Kinematics || ModelHash
-        data_str = f"{self.previous_hash}{self.clip_hash}{kinematics_str}{self.model_hash}"
-        return hashlib.sha256(data_str.encode('utf-8')).hexdigest()
+        # Length-prefixed domain-separated canonical encoding to prevent boundary-shifting collisions
+        data = (
+            _encode_field(self.previous_hash.lower()) +
+            _encode_field(self.clip_hash.lower()) +
+            _encode_field(kinematics_str) +
+            _encode_field(self.model_hash.lower())
+        )
+        return hashlib.sha256(data).hexdigest()
 
-    def _validate_hex(self, value):
+    def _validate_hex(self, value, field_name="hash"):
         if not isinstance(value, str):
-            raise ValueError("Hash must be a string.")
-        # Ensure it contains only hexadecimal characters (Genesis is allowed)
-        try:
-            int(value, 16)
-        except ValueError:
-            raise ValueError(f"Value is not a valid hex representation: {value}")
+            raise ValueError(f"{field_name} must be a string, got {type(value).__name__}")
+        val = value.lower()
+        if not _SHA256_HEX.match(val):
+            raise ValueError(f"{field_name} must be exactly 64 hexadecimal characters, got {value!r}")
 
 
 class MerkleLogHashChain:
@@ -238,18 +266,14 @@ class MerkleLogHashChain:
     def add_event(self, clip_hash, kinematics, model_hash):
         """
         Creates and appends a new event block to the log.
-        Computes SHA-256: B_i = SHA256(B_{i-1} || ClipHash || Kinematics || ModelHash)
+        Computes SHA-256 with length-delimited pre-image:
+        B_i = SHA256(len(B_{i-1}) || B_{i-1} || len(ClipHash) || ClipHash || len(Kinematics) || Kinematics || len(ModelHash) || ModelHash)
         """
-        t_start = time.perf_counter()
-        
         index = len(self.chain)
         previous_hash = self.chain[-1].hash if self.chain else self.genesis_hash
         
         block = EventBlock(index, previous_hash, clip_hash, kinematics, model_hash)
         self.chain.append(block)
-        
-        t_elapsed = (time.perf_counter() - t_start) * 1000  # ms
-        
         return block
 
     def validate_chain(self):
@@ -272,7 +296,11 @@ class MerkleLogHashChain:
                 continue
                 
             # 3. Verify current block's hash integrity
-            if block.hash != block.calculate_hash():
+            try:
+                if block.hash != block.calculate_hash():
+                    corrupted_indices.append(idx)
+                    continue
+            except Exception:
                 corrupted_indices.append(idx)
                 continue
                 
@@ -281,9 +309,11 @@ class MerkleLogHashChain:
         
     def tamper_block(self, index, new_clip_hash=None, new_kinematics=None, new_model_hash=None):
         """
-        Simulates forensic tampering of historical video clips or metadata.
-        For security auditing validation.
+        Simulates forensic tampering of historical video clips or metadata for audit verification testing.
         """
+        return self._unsafe_tamper_for_tests(index, new_clip_hash=new_clip_hash, new_kinematics=new_kinematics, new_model_hash=new_model_hash)
+
+    def _unsafe_tamper_for_tests(self, index, new_clip_hash=None, new_kinematics=None, new_model_hash=None):
         if index < 0 or index >= len(self.chain):
             raise IndexError("Block index out of bounds.")
             

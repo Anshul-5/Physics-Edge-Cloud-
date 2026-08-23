@@ -59,3 +59,36 @@ def test_mqtt_broadcaster():
     assert topic == f"physedge/devices/{str(camera_id)}/constraints"
     assert "nc-test" in serialized
     assert len(broadcaster.published_messages) == 1
+
+def test_mqtt_topic_injection_prevention():
+    broadcaster = MQTTConstraintBroadcaster()
+    # Wildcards and path traversal must be rejected
+    with pytest.raises(ValueError, match="not a valid UUID"):
+        broadcaster.publish_constraint("+", {})
+        
+    with pytest.raises(ValueError, match="not a valid UUID"):
+        broadcaster.publish_constraint("../../broadcast", {})
+
+    with pytest.raises(ValueError, match="not a valid UUID"):
+        broadcaster.publish_constraint("#", {})
+
+def test_adjudication_exporter_unknown_parameters():
+    exporter = AdjudicationExporter()
+    camera_id = uuid.uuid4()
+    
+    # Unknown key must be rejected
+    with pytest.raises(ValueError, match="Unknown constraint parameter"):
+        exporter.export_false_positive(camera_id, parameters={"unauthorized_key": 123})
+
+    # Excessive suppression duration must be rejected
+    with pytest.raises(ValueError, match="must be between"):
+        exporter.export_false_positive(camera_id, parameters={"suppression_duration_sec": 10**9})
+
+def test_constraint_rate_limiter_memory_eviction():
+    limiter = ConstraintRateLimiter()
+    camera_id = uuid.uuid4()
+    
+    # Query with novel UUID that does not record should not pollute memory permanently
+    limiter.is_adjustment_allowed(camera_id, 1.0)
+    assert str(camera_id) not in limiter.history
+

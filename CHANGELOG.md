@@ -8,7 +8,15 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 ### Security
-- Hardened L2 Regional Node gRPC ingestion with mTLS support, bounded queue, frame limits, and YOLO checksums
+- Hardened forensic Merkle log hash chain with length-delimited domain-separated encoding to prevent boundary-shifting collisions (#118)
+- Hardened CROP risk pooling and Conformal Prediction against NaN/non-finite alert suppression and variance poisoning (#126)
+- Added strict UUID validation to prevent MQTT topic injection and namespace escapes on constraint downlinks (#130)
+- Added parameter allowlist schema validation for edge negative constraints (#134)
+- Implemented bounded history tracking and memory eviction in ConstraintRateLimiter and MQTT broadcaster (#135)
+- Enforced strict 64-character hexadecimal digest validation in EventBlock (#139)
+- Added explicit opt-in requirement for PostgreSQLVectorStore in-memory fallback mode (#129)
+- Vectorized Laplace noise sampling and implemented sequential dimension budget composition in CoordinateObfuscator (#131, #147)
+- Hardened L2 Regional Node gRPC ingestion with mTLS support, bounded queue, frame limits, and YOLO checksums (#162)
 - Hardened all 22 GitHub Actions workflows by pinning all action dependencies to immutable 40-character commit SHAs (#122)
 - Added dual-language SAST CodeQL analysis for C++ and Python with top-level read-all permissions (#122)
 - Added OpenSSF Best Practices Program badge to README (#122)
