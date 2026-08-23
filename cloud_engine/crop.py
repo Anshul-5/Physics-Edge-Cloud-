@@ -1,5 +1,7 @@
 import numpy as np
 import time
+import math
+import logging
 
 class WelfordVarianceTracker:
     def __init__(self, min_variance=1e-6, default_variance=1.0):
@@ -13,6 +15,8 @@ class WelfordVarianceTracker:
         self.S = 0.0
 
     def update(self, val):
+        if val is None or isinstance(val, bool) or not isinstance(val, (int, float)) or not math.isfinite(val):
+            return
         self.n += 1
         d = val - self.mean
         self.mean += d / self.n
@@ -39,6 +43,8 @@ class EMAVarianceTracker:
         self.var = None
 
     def update(self, val):
+        if val is None or isinstance(val, bool) or not isinstance(val, (int, float)) or not math.isfinite(val):
+            return
         if self.mean is None:
             self.mean = val
             self.var = self.default_variance
@@ -73,6 +79,7 @@ class CROP:
         self.epsilon = epsilon
         self.min_variance = min_variance
         self.normalize_weights = normalize_weights
+        self.logger = logging.getLogger("physedge.crop")
         
         self.trackers = {}
         for src in sources:
@@ -91,17 +98,25 @@ class CROP:
         """
         if source not in self.trackers:
             return
-        
+            
+        if score is None or isinstance(score, bool) or not isinstance(score, (int, float)) or not math.isfinite(score):
+            self.logger.warning(f"CROP: dropping non-finite score update from source {source}: {score!r}")
+            return
+            
         if label is not None:
-            val_to_track = (score - label) ** 2
+            if isinstance(label, bool) or not isinstance(label, (int, float)) or not math.isfinite(label):
+                self.logger.warning(f"CROP: dropping non-finite label update from source {source}: {label!r}")
+                return
+            val_to_track = (float(score) - float(label)) ** 2
         else:
-            val_to_track = score
+            val_to_track = float(score)
             
         self.trackers[source].update(val_to_track)
 
     def pool_risks(self, scores):
         """
         Aggregates risk scores using precision-weighted log pooling.
+        Filters out non-finite or invalid values to prevent alert suppression.
         
         Args:
             scores (dict): Dictionary mapping source names to current risk scores P_k.
@@ -109,23 +124,30 @@ class CROP:
         Returns:
             float: Pooled risk probability R.
         """
-        t_start = time.perf_counter()
-        
+        if not isinstance(scores, dict):
+            return 0.5
+            
         log_p_anomaly = []
         log_p_normal = []
         weights = []
         
-        # Gather available scores and calculate precision weights
+        # Gather available scores and calculate precision weights (filter non-finite)
         active_sources = []
+        valid_scores = []
         for src in self.sources:
             if src in scores:
+                p_k = scores[src]
+                if p_k is None or isinstance(p_k, bool) or not isinstance(p_k, (int, float)) or not math.isfinite(p_k):
+                    self.logger.warning(f"CROP: dropping non-finite risk score from source {src}: {p_k!r}")
+                    continue
                 active_sources.append(src)
+                valid_scores.append(float(p_k))
                 var_k = self.trackers[src].variance
-                weight_k = 1.0 / var_k
+                weight_k = 1.0 / var_k if var_k > 0 else 1.0
                 weights.append(weight_k)
                 
         if not weights:
-            # Fallback if no scores are provided
+            # Fallback if no valid scores are available
             return 0.5
             
         # Normalize weights if required
@@ -135,13 +157,13 @@ class CROP:
             
         # Compute precision-weighted log pools
         for idx, src in enumerate(active_sources):
-            p_k = scores[src]
+            p_k = valid_scores[idx]
             # Clamp to prevent log(0) or log(1) errors
-            p_k = np.clip(p_k, self.epsilon, 1.0 - self.epsilon)
+            p_k = min(max(p_k, self.epsilon), 1.0 - self.epsilon)
             
             weight_k = weights[idx]
-            log_p_anomaly.append(weight_k * np.log(p_k))
-            log_p_normal.append(weight_k * np.log(1.0 - p_k))
+            log_p_anomaly.append(weight_k * math.log(p_k))
+            log_p_normal.append(weight_k * math.log(1.0 - p_k))
             
         # Log-space pooling: log R = sum_k (w_k log P_k) - log Z
         # Normalization: Z = exp(sum_k w_k log P_k) + exp(sum_k w_k log(1 - P_k))
@@ -149,14 +171,10 @@ class CROP:
         s_anomaly = sum(log_p_anomaly)
         s_normal = sum(log_p_normal)
         
-        # log_Z = log(exp(s_anomaly) + exp(s_normal))
         max_s = max(s_anomaly, s_normal)
-        log_Z = max_s + np.log(np.exp(s_anomaly - max_s) + np.exp(s_normal - max_s))
+        log_Z = max_s + math.log(math.exp(s_anomaly - max_s) + math.exp(s_normal - max_s))
         
         log_R = s_anomaly - log_Z
-        R = np.exp(log_R)
-        
-        # Performance check (Acceptance Criteria is <= 2 ms)
-        t_elapsed = (time.perf_counter() - t_start) * 1000  # ms
+        R = math.exp(log_R)
         
         return float(R)

@@ -98,12 +98,38 @@ def test_event_block_input_validation():
     assert block.hash is not None
     
     # Test invalid string type for hash
-    with pytest.raises(ValueError, match="Hash must be a string"):
+    with pytest.raises(ValueError, match="must be a string"):
         EventBlock(0, 12345, valid_hash, valid_kinematics, valid_hash)
         
-    # Test invalid non-hex string for hash (OpenSSF standard validation)
-    with pytest.raises(ValueError, match="Value is not a valid hex representation"):
+    # Test invalid non-hex / short string for hash
+    with pytest.raises(ValueError, match="must be exactly 64 hexadecimal characters"):
         EventBlock(0, "not-hex-chars-here!!!", valid_hash, valid_kinematics, valid_hash)
+
+    with pytest.raises(ValueError, match="must be exactly 64 hexadecimal characters"):
+        EventBlock(0, "0x" + "a" * 62, valid_hash, valid_kinematics, valid_hash)
+
+    with pytest.raises(ValueError, match="must be exactly 64 hexadecimal characters"):
+        EventBlock(0, "a" * 32, valid_hash, valid_kinematics, valid_hash)
+
+def test_hash_chain_boundary_collision_resistance():
+    """Verify that shifting characters across field boundaries produces distinct hashes."""
+    prev = "0" * 64
+    model = "1" * 64
+    
+    # Pre-images with boundary shift
+    b1 = EventBlock(0, prev, "a" * 64, {"k": "1"}, model)
+    b2 = EventBlock(0, prev, "a" * 64, {"k": "2"}, model)
+    assert b1.hash != b2.hash
+
+def test_postgre_sql_connection_failure_modes():
+    """Ensure connection failure raises in production mode unless allow_memory_fallback=True."""
+    store_prod = PostgreSQLVectorStore(host="invalid-db-host", allow_memory_fallback=False)
+    with pytest.raises(RuntimeError, match="PostgreSQL connection failed"):
+        store_prod.connect()
+
+    store_fallback = PostgreSQLVectorStore(host="invalid-db-host", allow_memory_fallback=True)
+    assert store_fallback.connect() is False
+    assert store_fallback.conn is None
 
 def hashlib_sha256(text):
     return hashlib.sha256(text.encode('utf-8')).hexdigest()

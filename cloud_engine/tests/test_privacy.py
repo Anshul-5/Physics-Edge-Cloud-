@@ -85,3 +85,12 @@ def test_openssf_input_validation():
     obfuscator = CoordinateObfuscator()
     with pytest.raises(ValueError, match="Invalid bounds"):
         obfuscator.coarsen([[0.5, 0.5]], bounds=(5.0, 2.0))
+
+def test_dimension_sequential_composition():
+    obfuscator = CoordinateObfuscator(epsilon=1.0, sensitivity=1.0)
+    coords = np.zeros((17, 2))
+    # Vectorized obfuscation with dimension composition should generate scaled noise
+    obfuscated_composed = obfuscator.obfuscate(coords, bounds=(-100.0, 100.0), compose_dimension=True)
+    assert obfuscated_composed.shape == (17, 2)
+    assert not np.allclose(obfuscated_composed, coords)
+

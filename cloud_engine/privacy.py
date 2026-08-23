@@ -73,7 +73,7 @@ class CoordinateObfuscator:
         coarsened = min_val + (quantized / (self.grid_size - 1)) * (max_val - min_val)
         return coarsened
 
-    def obfuscate(self, coords, bounds=(0.0, 1.0)):
+    def obfuscate(self, coords, bounds=(0.0, 1.0), compose_dimension=False):
         """
         Applies coordinate coarsening followed by Laplace noise addition.
         Clamps outputs to the original boundaries to ensure validity.
@@ -81,29 +81,33 @@ class CoordinateObfuscator:
         Args:
             coords (list or np.ndarray): Input coordinates of shape (N, D).
             bounds (tuple): Coordinate boundaries (min_val, max_val).
+            compose_dimension (bool): If True, composes privacy budget across all coordinates in release.
             
         Returns:
             np.ndarray: Obfuscated coordinates.
         """
+        coords_arr = np.array(coords, dtype=float)
+        if coords_arr.size == 0:
+            return coords_arr
+            
         min_val, max_val = bounds
         
         # 1. Coordinate Grid Coarsening
-        coarsened = self.coarsen(coords, bounds=bounds)
+        coarsened = self.coarsen(coords_arr, bounds=bounds)
         
-        # 2. Generate and Add Laplace Noise
-        obfuscated = np.zeros_like(coarsened)
-        
-        # Iterate over all dimensions of each coordinate to add independent noise
+        # 2. Vectorized Laplace Noise Addition via CSPRNG
         flat_coarsened = coarsened.ravel()
-        flat_obfuscated = np.zeros_like(flat_coarsened)
+        k = flat_coarsened.size
+        b_eff = (self.sensitivity * k / self.epsilon) if compose_dimension else self.b
         
-        for idx in range(len(flat_coarsened)):
-            noise = self.sample_laplace()
-            flat_obfuscated[idx] = flat_coarsened[idx] + noise
-            
+        # Sample uniform floats from CSPRNG in (0, 1) avoiding log(0)
+        u = np.array([self.sys_random.uniform(1e-15, 1.0 - 1e-15) for _ in range(k)])
+        u_shifted = u - 0.5
+        sgn = np.where(u_shifted >= 0, 1.0, -1.0)
+        noise = -b_eff * sgn * np.log(1.0 - 2.0 * np.abs(u_shifted))
+        
+        flat_obfuscated = flat_coarsened + noise
         obfuscated = flat_obfuscated.reshape(coarsened.shape)
         
-        # 3. Clamp to original bounds to ensure mathematical and system validity
-        obfuscated = np.clip(obfuscated, min_val, max_val)
-        
-        return obfuscated
+        # 3. Clamp to original bounds to ensure validity
+        return np.clip(obfuscated, min_val, max_val)
