@@ -1,158 +1,175 @@
-# API Specification: PhysEdge-Cloud Communication Interfaces
+# Communication Protocol & Interface Specification: PhysEdge-Cloud
 
-This document defines the interface endpoints, protocol schemas, and payload specifications for data flowing across the three topological tiers in the PhysEdge-Cloud cascade.
+**Document Reference:** PEC-API-SPEC-V2.9  
+**Classification:** Interface Control Document (ICD) & Protocol Specification  
+**Standard Compliance:** gRPC v1.70 / Protocol Buffers v5.29 / OpenAPI 3.1.0  
 
 ---
 
-## 1. Edge-to-Regional (L1 $\rightarrow$ L2) Interface
+## 1. Network Topology & Interface Overview
 
-*   **Protocol:** gRPC / Protocol Buffers (fallback to WebSocket for lower-overhead stream initialization).
-*   **Payload Type:** Binary-serialized message containing camera metadata, physical metrics, and structural skeletal joint points.
-*   **Zero-PII Compliance:** Image frames are blocked at the edge. The uplink streams only raw scalar metrics and pose data.
+PhysEdge-Cloud defines four formal communication interfaces across the three topological tiers:
 
-### Protobuf Definition (`edge_uplink.proto`)
+1. **Interface 1 (IF-1: L1 Edge -> L2 Regional):** High-throughput binary telemetry via gRPC / mTLS streaming anonymized skeletal joint matrices and SI-unit kinematics.
+2. **Interface 2 (IF-2: L2 Regional -> L3 Cloud):** HTTPS REST / gRPC endpoint for multi-modal risk escalation payloads.
+3. **Interface 3 (IF-3: L7 Cloud -> L1 Edge Downlink):** Rate-limited MQTT / TLS downlink channel for negative constraint streaming and threshold adaptation.
+4. **Interface 4 (IF-4: L8/L9 Operations -> Dispatcher):** Asynchronous Webhook / PagerDuty / Prometheus exporter interface for security operations centers.
+
+---
+
+## 2. Interface 1: Edge-to-Regional Telemetry (`edge_uplink.proto`)
+
+- **Protocol:** gRPC over HTTP/2 with Mutual TLS (mTLS).
+- **Compression:** Snappy / zstandard for low-latency serialization.
+- **Service Contract:**
 
 ```protobuf
 syntax = "proto3";
 
-package physedge.l1;
+package physedge.uplink.v1;
 
-enum TriggerCause {
+enum AnomalyTriggerCause {
   CAUSE_UNSPECIFIED = 0;
   CAUSE_JERK_SURPRISE = 1;
   CAUSE_PANIC_INDEX = 2;
   CAUSE_COLLISION_TTC = 3;
+  CAUSE_POSTURE_DEFORMATION = 4;
 }
 
-message Joint2D {
-  float x = 1;     // Normalized coordinate [0.0, 1.0]
-  float y = 2;     // Normalized coordinate [0.0, 1.0]
-  float score = 3; // Model confidence score [0.0, 1.0]
+message JointCoordinate2D {
+  float x = 1;           // Ground-plane normalized coordinate [0.0, 1.0]
+  float y = 2;           // Ground-plane normalized coordinate [0.0, 1.0]
+  float confidence = 3;  // Keypoint detector confidence [0.0, 1.0]
 }
 
-message Skeleton {
-  int32 person_id = 1;
-  map<string, Joint2D> joints = 2; // Keyed by joint name (e.g. "nose", "left_shoulder")
+message SkeletalEntity {
+  int32 entity_id = 1;
+  map<string, JointCoordinate2D> keypoints = 2;
+  float velocity_mps = 3;
+  float acceleration_mpss = 4;
+  float jerk_mpsss = 5;
 }
 
-message MetricFrame {
-  int64 timestamp_ms = 1;
-  float motion_energy = 2;      // Metric energy
-  float directional_entropy = 3;// Motion entropy
-  repeated Skeleton skeletons = 4;
+message KinematicTelemetryFrame {
+  int64 timestamp_ns = 1;
+  float motion_energy = 2;
+  float directional_entropy = 3;
+  repeated SkeletalEntity entities = 4;
 }
 
-message EdgeTriggerPayload {
+message EdgeEscalationPayload {
   string camera_uuid = 1;
   string model_version_hash = 2;
-  int64 trigger_timestamp_ms = 3;
-  TriggerCause primary_cause = 4;
+  int64 trigger_timestamp_ns = 3;
+  AnomalyTriggerCause primary_cause = 4;
   
-  // Historical context buffer (5-10 seconds of kinematics leading to trigger)
-  repeated MetricFrame historical_buffer = 5;
+  // Rolling historical context buffer (5 to 10 seconds prior to trigger)
+  repeated KinematicTelemetryFrame historical_buffer = 5;
   
-  // Real-time stream of kinematic events post-trigger
-  repeated MetricFrame active_frames = 6;
+  // Real-time active kinematic telemetry post-trigger
+  repeated KinematicTelemetryFrame active_frames = 6;
+}
+
+message EdgeEscalationAck {
+  string camera_uuid = 1;
+  int64 acknowledged_timestamp_ns = 2;
+  bool backpressure_shed = 3;
+}
+
+service EdgeTelemetryService {
+  rpc StreamEscalation(stream EdgeEscalationPayload) returns (stream EdgeEscalationAck);
 }
 ```
 
 ---
 
-## 2. Regional-to-Cloud (L2 $\rightarrow$ L3) Interface
+## 3. Interface 2: Regional-to-Cloud Escalation REST API
 
-*   **Protocol:** HTTPS POST / REST API (or persistent gRPC channel).
-*   **Endpoint:** `/api/v1/escalation/evaluate`
-*   **Payload Type:** JSON.
+- **Protocol:** HTTPS POST
+- **Endpoint:** `/api/v1/escalations/evaluate`
+- **Headers:** `Content-Type: application/json`, `X-Camera-UUID: <uuid>`, `X-Model-Hash: <sha256>`
 
-### Payload Schema: Escalation Request
+### Request Payload Schema:
 
 ```json
 {
-  "escalation_id": "esc-89324-af89",
-  "camera_uuid": "cam-device-esp32-0941",
-  "model_version_hash": "ae274f88190debc49a374",
-  "timestamp": 1783492812000,
-  "escalation_cause": "CAUSE_JERK_SURPRISE",
+  "escalation_id": "esc-904b-48af-91c2",
+  "camera_uuid": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+  "model_version_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "timestamp_ns": 1783492812000000000,
+  "primary_cause": "CAUSE_JERK_SURPRISE",
   "regional_evaluation": {
-    "posterior_anomaly_probability": 0.842,
-    "confidence_variance": 0.012,
+    "posterior_anomaly_probability": 0.8425,
+    "confidence_variance": 0.0124,
     "abstain_status": false,
     "detected_objects": [
       {
         "class": "person",
-        "confidence": 0.91,
-        "box": [110, 45, 140, 92]
+        "confidence": 0.945,
+        "bounding_box": [110, 45, 140, 92]
       }
     ],
-    "pose_fall_probability": 0.78
+    "pose_fall_probability": 0.782
   },
   "kinematic_history": [
     {
       "time_delta_ms": -1000,
-      "energy": 4.12,
-      "entropy": 0.45,
-      "active_skeletons_count": 1
+      "motion_energy": 4.12,
+      "directional_entropy": 0.45,
+      "active_entities_count": 2
     }
   ]
 }
 ```
 
-### Payload Schema: Escalation Response
+### Response Payload Schema:
 
 ```json
 {
-  "escalation_id": "esc-89324-af89",
-  "adjudication": "EVALUATE_CLOUD_COMPLETE",
-  "final_risk_score": 0.893,
-  "confidence_interval": [0.85, 0.94],
-  "action_required": "RAISE_ALERT",
-  "event_type_prediction": "HUMAN_FALL"
+  "escalation_id": "esc-904b-48af-91c2",
+  "decision": "DISPATCH_ALERT",
+  "fused_anomaly_score": 0.8912,
+  "conformal_quantile_threshold": 0.8500,
+  "conformal_alarm": true,
+  "routing_action": "FULL",
+  "spectral_divergence": 0.4120,
+  "block_hash": "4a5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c",
+  "processing_latency_ms": 0.3301
 }
 ```
 
 ---
 
-## 3. Cloud-to-Edge (L3 $\rightarrow$ L1) Negative Constraint Loop
+## 4. Interface 3: Closed-Loop Negative Constraint Downlink (MQTT)
 
-*   **Protocol:** MQTT (over secure TLS 1.3 connection).
-*   **Topic Structure:** `physedge/devices/{camera_uuid}/constraints`
-*   **Payload Type:** JSON.
-*   **Purpose:** Closed-loop feedback adjusting detection sensitivity when false positives occur (e.g. insects on lens).
-
-### Payload Schema: Negative Constraint Update
+- **Topic Format:** `physedge/control/v1/{camera_uuid}/constraints`
+- **QoS Level:** QoS 1 (At least once delivery)
+- **Downlink Payload Schema:**
 
 ```json
 {
-  "constraint_id": "nc-98031-1b",
-  "timestamp": 1783492900000,
+  "constraint_id": "nc-a0eebc99-1783492812",
+  "timestamp_ms": 1783492812000,
   "action": "ADJUST_THRESHOLDS",
   "parameters": {
-    "jerk_surprise_threshold_factor": 1.25,
+    "jerk_surprise_threshold_factor": 1.15,
     "entropy_threshold_base": 0.68,
     "rolling_window_override_sec": 12,
     "suppression_duration_sec": 3600
   },
-  "reason": "FALSE_POSITIVE_ENVIRONMENTAL_NOISE"
+  "reason": "FALSE_POSITIVE_CAMERA_JITTER"
 }
 ```
 
 ---
 
-## 4. Secure Over-The-Air Update (L9 $\rightarrow$ L1) Interface
+## 5. Interface 4: Operations Alert Dispatcher & Metrics Exporter
 
-*   **Protocol:** HTTPS GET / Secure Pull.
-*   **Topic / Update Payload Schema:** Verification envelope for firmware or weight deployments.
-
-### Payload Schema: OTA Update Manifest
-
-```json
-{
-  "manifest_version": "1.4.0",
-  "target_hardware": "ESP32-S3-WROOM-1",
-  "firmware_checksum_sha256": "8f3b207df3a0937a0c8b3fb8127419e1",
-  "model_weights_checksum_sha256": "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d",
-  "anti_rollback_counter": 12,
-  "binary_url": "https://secure-ota.physedge.internal/firmware/v1.4.0.bin",
-  "signature": "MEQCIF6cM9e8k02iM8d...[ECDSA Signature]"
-}
-```
+- **Prometheus Metrics Endpoint:** `/metrics`
+- **Exported Gauges & Counters:**
+  - `physedge_end_to_end_latency_ms`: Gauge tracking 95th percentile cascade latency.
+  - `physedge_edge_fps`: Gauge tracking frame ingestion rate per camera.
+  - `physedge_edge_discard_ratio`: Gauge tracking percentage of frames filtered at Tier 1.
+  - `physedge_conformal_coverage_rate`: Gauge tracking empirical prediction interval coverage.
+  - `physedge_sprt_false_alarm_rate`: Gauge tracking online Wald SPRT error statistics.
+  - `physedge_alerts_dispatched_total`: Counter tracking security alerts dispatched.

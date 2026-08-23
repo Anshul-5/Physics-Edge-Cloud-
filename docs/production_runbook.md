@@ -1,74 +1,65 @@
-# Production Runbook: Deployment, Drift and Operations
+# Production Operations & Deployment Runbook: PhysEdge-Cloud
 
-This runbook defines the operational procedures for deploying updates, monitoring performance drift, and managing disaster recovery/graceful degradation modes in the PhysEdge-Cloud network.
-
----
-
-## 1. Canary Deployment & Automated Rollback
-
-All model weight updates and firmware revisions must undergo a canary deployment phase.
-
-### Canary Strategy
-1.  **Stage 1:** Deploy to $5\%$ of the target camera fleet for $72$ hours.
-2.  **Stage 2:** Scale deployment to $20\%$ of the fleet for another $48$ hours.
-3.  **Stage 3:** Rollout to $100\%$ of cameras.
-
-### Automated Rollback Trigger: SPRT Formula
-We use the **Sequential Probability Ratio Test (SPRT)** to evaluate whether the false-alarm rate (FAR) exceeds the baseline threshold $p_0$ to trigger a rollback to the backup firmware.
-
-Let $x_i \in \{0, 1\}$ represent the classification outcome of a trigger validation (where $1$ is a False Alarm). We test:
-*   $H_0: p = p_0$ (Acceptable FAR, e.g. $0.01$)
-*   $H_1: p = p_1$ (Unacceptable FAR, e.g. $0.05$)
-
-The log-likelihood ratio $S_n$ for $n$ events is calculated as:
-$$S_n = \sum_{i=1}^n \log \frac{P(x_i | H_1)}{P(x_i | H_0)} = k \log \frac{p_1}{p_0} + (n - k) \log \frac{1 - p_1}{1 - p_0}$$
-where $k$ is the number of false alarms observed.
-
-*   **Rollback Condition:** If $S_n \ge B$, immediately abort rollout and rollback.
-*   **Approval Condition:** If $S_n \le A$, accept candidate and escalate deployment.
-*   **Threshold Parameters:**
-    *   $A = \log \frac{\beta}{1 - \alpha}$
-    *   $B = \log \frac{1 - \beta}{\alpha}$
-    *   $\alpha$ (False Positive rate limit) = $0.05$
-    *   $\beta$ (Missed Detection rate limit) = $0.10$
+**Document Reference:** PEC-OPS-RUNBOOK-V2.9  
+**Classification:** Operational Governance, Reliability Engineering & SRE Manual  
+**Target Availability SLA:** 99.99% Uptime / Latency SLA < 50.0 ms  
 
 ---
 
-## 2. Drift Detection & Shadow Retraining
+## 1. Progressive Canary Deployment & Safety Rollbacks
 
-The model registry monitors telemetry packets to calculate population stability.
+To prevent model regressions and out-of-distribution hallucinations from entering production fleets, PhysEdge-Cloud executes deterministic progressive rollouts governed by Wald's Sequential Probability Ratio Test (SPRT).
 
-### Input Drift (Covariate Shift)
-*   **Metric:** Kullback-Leibler (KL) Divergence on the incoming optical flow velocity distributions $P(X)$ versus baseline validation sets $Q(X)$:
-    $$D_{\text{KL}}(P \mathbin{\Vert} Q) \approx \sum_{i} P(b_i) \log \frac{P(b_i)}{Q(b_i)} \cdot \Delta v$$
-    where $b_i$ are velocity bins of width $\Delta v$ (discretized approximation of the continuous KL divergence).
-*   **Threshold:** If $D_{\text{KL}} > 0.5$ for $24$ consecutive hours, raise a low-priority telemetry alarm. No retraining is triggered.
+### 1.1 Progressive Staged Rollout Schedule
+- **Stage 0 (Canary 5%):** Deployed to 5% of cameras for 72 operational hours.
+- **Stage 1 (Extended Canary 20%):** Deployed to 20% of cameras for 48 operational hours upon Stage 0 approval.
+- **Stage 2 (Fleetwide 100%):** Promoted to 100% of production devices.
 
-### Concept Drift
-*   **Metric:** Shift in the label-conditional distribution $P(Y|X)$.
-*   **Action:** Triggers offline compilation of the retraining dataset and initiates Layer 7.
+### 1.2 Wald's Sequential Probability Ratio Test (SPRT) Formulation
+During canary execution, streaming alert verification outcomes $x_i \in \{0, 1\}$ ($1 = \text{False Positive}$, $0 = \text{True Anomaly}$) are evaluated against statistical hypotheses:
+- $H_0: p = p_0$ (Acceptable Baseline False Alarm Rate, $p_0 = 0.01$)
+- $H_1: p = p_1$ (Unacceptable Elevated False Alarm Rate, $p_1 = 0.05$)
 
-### Model Promotion Gate
-To promote a challenger model from the shadow retraining pipeline to production:
-1.  Verify performance on the frozen benchmark validation set.
-2.  The challenger must exceed the champion’s frame-level Area Under the Precision-Recall curve (AUPRC) by a statistically significant margin:
-    $$\text{AUPRC}_{\text{challenger}} - \text{AUPRC}_{\text{champion}} \ge 1.645 \times \text{SE}_{\text{diff}}$$
-    where $\text{SE}_{\text{diff}} = \sqrt{\text{SE}_{\text{challenger}}^2 + \text{SE}_{\text{champion}}^2}$ is the combined standard error of the difference (one-sided test at $\alpha = 0.05$), with each SE estimated via 1000-fold bootstrap on the frozen validation set.
+The cumulative log-likelihood ratio $S_n$ for $n$ observations containing $k$ false positives is:
+
+$$S_n = k \ln \left(\frac{p_1}{p_0}\right) + (n - k) \ln \left(\frac{1 - p_1}{1 - p_0}\right)$$
+
+### 1.3 Decision Boundaries & Automatic Rollback Action
+- **Upper Abort Bound ($B$):** Trigger automated instant rollback to champion model:
+  $$S_n \ge B = \ln \left( \frac{1 - \beta}{\alpha} \right)$$
+- **Lower Accept Bound ($A$):** Confirm baseline safety and escalate rollout to next stage:
+  $$S_n \le A = \ln \left( \frac{\beta}{1 - \alpha} \right)$$
+- **Continue Monitoring:** $A < S_n < B$
+- **Significance Parameters:** $\alpha = 0.05$ (Type I error probability), $\beta = 0.05$ (Type II error probability).
 
 ---
 
-## 3. Orchestration Policies & Disaster Fallback
+## 2. Statistical Drift Tracking & Shadow Retraining
 
-### Compute Orchestrator Optimization
-Layer 4 operates a Lagrangian threshold policy balancing cloud compute cost against missed anomaly risks:
-$$\mathcal{L}(\theta) = \frac{\mathbb{E}[\text{Cloud Cost}]}{C_{\text{ref}}} + \lambda \big(\mathbb{E}[\text{Missed Detection Rate}] - \delta\big)$$
-where $C_{\text{ref}}$ is a reference cost (e.g., baseline cloud-only pipeline cost) that normalizes the cost term to a dimensionless ratio, ensuring dimensional consistency with the probability-based risk term.
-*   **High Risk Event:** If L2 escalates a posterior risk $\ge 0.70$, run the full Cloud suite (L3-Graph + AE).
-*   **Medium Risk Event:** Posterior risk $[0.30, 0.70)$, run L3-AE but bypass Graph Spectral analysis.
-*   **Low Risk Event:** Posterior risk $< 0.30$, terminate execution, archive local metadata, and skip cloud processing.
+### 2.1 Covariate Shift (Input Feature Drift)
+The cloud engine continuously calculates the symmetric Kullback-Leibler (KL) divergence over a 24-hour sliding window against baseline reference distributions:
 
-### Disaster Fallback (Edge-Only Mode)
-If cloud connectivity is lost (HTTP 5xx errors or connection timeouts exceeding 1500 ms):
-1.  **L1 Edge Gate** switches from sleep duty cycles to continuous processing.
-2.  **L2 Regional Node** bypasses Cloud validation and acts as the primary decision node.
-3.  Telemetry alerts are queued in regional SQLite transaction log files, flushing to the cloud once connectivity is restored.
+$$D_{\text{KL}}(P \parallel Q) = \sum_{b=1}^B P(b) \ln \left(\frac{P(b)}{Q(b)}\right)$$
+
+- If $D_{\text{KL}} > 0.5$ for 24 consecutive hours, a telemetry warning is emitted to SRE dashboards. No model retraining is initiated.
+
+### 2.2 Concept Drift & Shadow Retraining Initiation
+- **Trigger:** A statistically significant shift in the posterior distribution $P(Y \mid X)$ derived from operator false-positive feedback triggers the Layer 7 shadow retraining pipeline.
+- **Champion / Challenger Promotion Gate:** A challenger model is promoted only if it achieves a statistically significant improvement in Area Under the Precision-Recall Curve (AUPRC):
+  $$\text{AUPRC}_{\text{challenger}} - \text{AUPRC}_{\text{champion}} \ge 1.96 \cdot \text{SE}_{\text{diff}}$$
+  where $\text{SE}_{\text{diff}} = \sqrt{\text{SE}_{\text{challenger}}^2 + \text{SE}_{\text{champion}}^2}$ is computed via 1,000-fold bootstrap resampling on a frozen benchmark validation set.
+
+---
+
+## 3. High-Availability & Disaster Recovery Modes
+
+### 3.1 Graceful Degradation (Edge-Autonomous Mode)
+If central cloud connectivity is interrupted ($> 1500\text{ ms}$ latency timeout or HTTP 5xx errors):
+1. **Tier 1 (ESP32-S3):** Switches from opportunistic wake-gating to continuous streaming mode.
+2. **Tier 2 (NVIDIA Jetson):** Assumes full autonomous decision authority, evaluating CROP log-odds locally without cloud escalation.
+3. **Local Queuing:** Escalated telemetry is written to regional SQLite write-ahead log (WAL) storage and flushed upon cloud reconnection.
+
+### 3.2 Recovery & Health Checklist
+- Verify PostgreSQL `pgvector` index responsiveness ($< 5\text{ ms}$ query latency).
+- Validate Merkle hash-chain continuity via `hash_chain.validate_chain()`.
+- Check Prometheus metric exporters for buffer depths and CPU/GPU memory watermarks.
