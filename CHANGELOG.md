@@ -85,6 +85,15 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - docs: update changelog [skip ci] ([dfc9684](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/dfc9684814dcd97602fe4008a15ba48d03ad3e80)) @github-actions[bot]
 
 ### Changed
+- feat(openssf): add fuzzing harnesses and lock Python dependencies (#168)
+
+* feat(openssf): add fuzzing harnesses and lock Python dependencies
+
+* fix(ci): correct ClusterFuzzLite action commit SHA
+
+* fix(fuzz): fix Dockerfile paths and CMakeLists references for ClusterFuzzLite
+
+* fix(fuzz): fix API calls and signatures in fuzz harnesses ([634d5c9](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/634d5c9c518a038a00d926ee360fd7b96ab792ed)) @Purvansh Joshi
 - chore(governance): add archittmittal to CODEOWNERS and maintainers (#167)
 
 * chore(governance): add archittmittal to CODEOWNERS and maintainers
