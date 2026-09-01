@@ -246,6 +246,23 @@ ci: bump actions/checkout from 4 to 7 ([957ec88](https://github.com/Anshul-5/Phy
 - fix(ci): run changelog only after CI passes ([15cd87b](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/15cd87be4626383943053200a3694f55b48fc11f)) @Purvansh Joshi
 
 ### Infrastructure
+- chore: bump pytest from 8.3.4 to 9.1.1 (#175)
+
+Bumps [pytest](https://github.com/pytest-dev/pytest) from 8.3.4 to 9.1.1.
+- [Release notes](https://github.com/pytest-dev/pytest/releases)
+- [Changelog](https://github.com/pytest-dev/pytest/blob/main/CHANGELOG.rst)
+- [Commits](https://github.com/pytest-dev/pytest/compare/8.3.4...9.1.1)
+
+---
+updated-dependencies:
+- dependency-name: pytest
+  dependency-version: 9.1.1
+  dependency-type: direct:production
+  update-type: version-update:semver-major
+...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com> ([bedf1d7](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/bedf1d7ff02d1cba452d06c4c461b2416cd12d4a)) @dependabot[bot]
 - ci: bump actions/download-artifact from 4.1.9 to 8.0.1 (#170)
 
 Bumps [actions/download-artifact](https://github.com/actions/download-artifact) from 4.1.9 to 8.0.1.
