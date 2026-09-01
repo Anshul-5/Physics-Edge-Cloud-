@@ -251,6 +251,7 @@ ci: bump actions/checkout from 4 to 7 ([957ec88](https://github.com/Anshul-5/Phy
 - fix(ci): run changelog only after CI passes ([15cd87b](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/15cd87be4626383943053200a3694f55b48fc11f)) @Purvansh Joshi
 
 ### Infrastructure
+- ci: fix YAML parsing error in auto-close workflow condition (#184) ([221e49d](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/221e49db59f167222ef268fd1f50fa1c8beeea1a)) @Purvansh Joshi
 - chore: bump pytest from 8.3.4 to 9.1.1 (#175)
 
 Bumps [pytest](https://github.com/pytest-dev/pytest) from 8.3.4 to 9.1.1.
