@@ -75,6 +75,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
 ### Documentation
+- docs: update changelog [skip ci] ([4d95229](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/4d95229064589d87b25595c1bb811fc480333266)) @github-actions[bot]
 - docs: update changelog [skip ci] ([14fec33](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/14fec336d77dd6ee3cf2c380e823da854435ee7e)) @github-actions[bot]
 - docs: add international journal manuscript, research evaluation report, and formal ICD specifications ([883d17e](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/883d17e4fa9ad913a073fd1533c7c47e02f95ab6)) @Purvansh Joshi
 - docs: add mathematical matrix formulations and real-world benchmark metrics to README ([62588c0](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/62588c06c9f59cbbb198c29b59fe0805854606b5)) @Purvansh Joshi
