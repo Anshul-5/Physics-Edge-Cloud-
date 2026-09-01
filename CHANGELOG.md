@@ -244,6 +244,22 @@ ci: bump actions/checkout from 4 to 7 ([957ec88](https://github.com/Anshul-5/Phy
 - fix(ci): run changelog only after CI passes ([15cd87b](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/15cd87be4626383943053200a3694f55b48fc11f)) @Purvansh Joshi
 
 ### Infrastructure
+- ci: bump actions/download-artifact from 4.1.9 to 8.0.1 (#170)
+
+Bumps [actions/download-artifact](https://github.com/actions/download-artifact) from 4.1.9 to 8.0.1.
+- [Release notes](https://github.com/actions/download-artifact/releases)
+- [Commits](https://github.com/actions/download-artifact/compare/cc203385981b70ca67e1cc392babf9cc229d5806...3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c)
+
+---
+updated-dependencies:
+- dependency-name: actions/download-artifact
+  dependency-version: 8.0.1
+  dependency-type: direct:production
+  update-type: version-update:semver-major
+...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com> ([ecfa62e](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/ecfa62e9eba953f0de46a50ef66c30e180ab73d0)) @dependabot[bot]
 - ci: add workflow_dispatch to pages.yml ([e0500e3](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/e0500e3d8c174daf9aab56251dc77181651e2cef)) @Purvansh Joshi
 - ci: bump github/codeql-action from 4.37.4 to 4.37.7 (#87)
 
