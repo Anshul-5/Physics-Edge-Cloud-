@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       issues: write
-    if: github.event.comment != null && (contains(github.event.comment.body, '#fix') || contains(github.event.comment.body, 'fixes #') || contains(github.event.comment.body, 'closes #'))
+    if: "github.event.comment != null && (contains(github.event.comment.body, '#fix') || contains(github.event.comment.body, 'fixes #') || contains(github.event.comment.body, 'closes #'))"
     steps:
       - name: Extract and close issues
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
