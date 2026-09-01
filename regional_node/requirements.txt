@@ -6,4 +6,4 @@ torch==2.9.1
 torchvision==0.24.1
 opencv-python-headless==4.11.0.86
 scipy==1.15.2
-mediapipe==0.10.21
+mediapipe==1.0.1
