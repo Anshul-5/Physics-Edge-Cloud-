@@ -101,6 +101,19 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - docs: update changelog [skip ci] ([dfc9684](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/dfc9684814dcd97602fe4008a15ba48d03ad3e80)) @github-actions[bot]
 
 ### Changed
+- fix(deps): repair unresolvable Python dependency pins (#195)
+
+- cloud_engine: move base image to python:3.12-slim (numpy 2.5.2 and
+  networkx 3.7 require Python >=3.12); bump scipy 1.15.2 -> 1.16.3
+  since 1.15.x requires numpy<2.5; bump networkx to 3.7
+- torch 2.14.0 + torchvision 0.29.0 together (torchvision pins torch exactly)
+- grpcio-tools 1.84.0 + protobuf 7.36.2 together (grpcio-tools requires
+  protobuf>=7.35.1)
+- sync requirements.lock files with requirements.txt
+- ci: add job that resolves each component's requirements.txt
+- dependabot: group torch/torchvision and grpcio/grpcio-tools/protobuf
+
+Supersedes #187, #188, #189, #191. ([668d4ca](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/668d4cadd6de547c96b570b240abde9859e3b64a)) @Purvansh Joshi
 - docs(openssf): document branch protection ruleset and Best Practices (#169) ([08018dc](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/08018dc4abf6a139890b1137bf134668c1cb1570)) @Purvansh Joshi
 - feat(openssf): add fuzzing harnesses and lock Python dependencies (#168)
 
