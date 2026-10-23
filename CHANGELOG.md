@@ -23,6 +23,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Added OpenSSF Best Practices Program badge to README (#122)
 
 ### Fixed
+- Fixed unresolvable Python dependency pins: moved cloud_engine image to Python 3.12 (required by numpy 2.5 / networkx 3.7), bumped scipy to 1.16.3 for numpy 2.5 compatibility, upgraded torch/torchvision and grpcio-tools/protobuf as matched pairs, and synced lockfiles; added a CI dependency-resolution check and Dependabot groups (supersedes #187, #188, #189, #191)
 - Enabled strict failure exit codes on cppcheck and clang-format static analysis in CI (#158)
 - Fixed action commit SHA in stale workflow for scheduled stale maintenance (#151)
 - Fixed NaN suppression in FusionEngine Bayesian log-odds updating and added temperature validation
