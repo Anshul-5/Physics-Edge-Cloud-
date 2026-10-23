@@ -4,6 +4,6 @@ protobuf==7.36.2
 ultralytics==8.4.132
 torch==2.14.0
 torchvision==0.29.0
-opencv-python-headless==4.11.0.86
+opencv-python-headless==5.0.0.93
 scipy==1.15.2
 mediapipe==1.0.1
