@@ -251,6 +251,22 @@ ci: bump actions/checkout from 4 to 7 ([957ec88](https://github.com/Anshul-5/Phy
 - fix(ci): run changelog only after CI passes ([15cd87b](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/15cd87be4626383943053200a3694f55b48fc11f)) @Purvansh Joshi
 
 ### Infrastructure
+- chore: bump grpcio from 1.83.1 to 1.84.0 (#190)
+
+Bumps [grpcio](https://github.com/grpc/grpc) from 1.83.1 to 1.84.0.
+- [Release notes](https://github.com/grpc/grpc/releases)
+- [Commits](https://github.com/grpc/grpc/compare/v1.83.1...v1.84.0)
+
+---
+updated-dependencies:
+- dependency-name: grpcio
+  dependency-version: 1.84.0
+  dependency-type: direct:production
+  update-type: version-update:semver-minor
+...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com> ([752e0f2](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/752e0f2a3d5da0353424f5cf30d7c3c049cee751)) @dependabot[bot]
 - ci: fix YAML parsing error in auto-close workflow condition (#184) ([221e49d](https://github.com/Anshul-5/Physics-Edge-Cloud-/commit/221e49db59f167222ef268fd1f50fa1c8beeea1a)) @Purvansh Joshi
 - chore: bump pytest from 8.3.4 to 9.1.1 (#175)
 
