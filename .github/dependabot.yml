@@ -35,6 +35,12 @@ updates:
       - "python"
     commit-message:
       prefix: "chore"
+    # Packages with exact cross-pins must move together in one PR
+    groups:
+      pytorch:
+        patterns: ["torch", "torchvision"]
+      grpc:
+        patterns: ["grpcio", "grpcio-tools", "protobuf"]
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-patch"]

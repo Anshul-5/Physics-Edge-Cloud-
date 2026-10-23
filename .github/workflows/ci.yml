@@ -366,3 +366,25 @@ jobs:
       - name: Check no broken internal links
         run: |
           grep -rn 'file:///' docs/ README.md && echo "WARNING: local file:// links found" || true
+
+  # ============================================================
+  # Job 10: Python Dependency Resolution
+  # ============================================================
+  python-deps:
+    name: Python Deps (${{ matrix.component }})
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        component: [cloud_engine, regional_node]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+
+      - name: Resolve pinned requirements
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --dry-run --ignore-installed -r ${{ matrix.component }}/requirements.txt
