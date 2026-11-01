@@ -1,5 +1,5 @@
-grpcio==1.84.0
-grpcio-tools==1.84.0
+grpcio==1.85.0
+grpcio-tools==1.85.0
 protobuf==7.36.2
 ultralytics==8.4.132
 torch==2.14.0
