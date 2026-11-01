@@ -2,7 +2,7 @@ grpcio==1.84.0
 grpcio-tools==1.84.0
 protobuf==7.36.2
 ultralytics==8.4.132
-torch==2.14.0
+torch==2.15.0
 torchvision==0.29.0
 opencv-python-headless==4.11.0.86
 scipy==1.15.2
